@@ -190,10 +190,14 @@ public class IOL_Project {
       //print info per line
       System.out.println("\n------------------------\nLINE "+(a+1)+" INFORMATION"+"\nnum. of elements:"+PWord.get(a).size()+"\n"+PWord.get(a));
 //               System.out.println(PWord.get(a)); //gets array per line
+                if(PWord.get(a).size()==1){
+                  System.out.println(PWord.get(a).get(b)+"invalid wrong syntax, only one element"+PWord.indexOf(b)); 
+                }
                while (PWord.get(a).size()-1 > b) {
 //                   System.out.println(PWord.get(a).get(b));//gets each word (INT) line by line    
                 System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b); 
-                 //saving variables (first word of the line)--- DT VAR | DT VAR IS VAL
+               
+                //saving variables (first word of the line)--- DT VAR | DT VAR IS VAL
                 if(AllDT.contains(PWord.get(a).get(b))==true&&PWord.get(a).size()!=b){
                      b++;
                         //INT DT
@@ -204,30 +208,26 @@ public class IOL_Project {
                                  System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b+"\nDT VAR = VALID "); 
                             }  
                             //IF DT VAR IS VAL
-                                else if(PWord.get(a).size()-1!=b){
-                                 b++;
-                                     if(PWord.get(a).get(b).equals("IS")){
-                                         System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b); ; 
-                                         b++;
-                                         if(PWord.get(a).get(b).equals("INT_LIT")){
-                                             
-                                            System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b+"\nDT VAR IS VAL = VALID ");
-                                         }
-                                         else{System.out.println(PWord.get(a).get(b)+"invalid"+PWord.indexOf(b)); }
-                                     }
-
-                                 }
+                            else if(PWord.get(a).size()-1!=b){
+                                b++;
+                                if(PWord.get(a).get(b).equals("IS")){
+                                    System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b); ; 
+                                    b++;
+                                    if(PWord.get(a).get(b).equals("INT_LIT")){
+                                        System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b+"\nDT VAR IS VAL = VALID ");
+                                    }
+                                    else{System.out.println(PWord.get(a).get(b)+"invalid wrong syntax-DT VAR IS (missing VAL)"+PWord.indexOf(b));break; }
+                                }
+                                else{System.out.println(PWord.get(a).get(b)+"invalid wrong syntax-DT VAR IS (missing VAL)"+PWord.indexOf(b));break; }
+                            }
                             else{System.out.println(PWord.get(a).get(b)+"invalid"+PWord.indexOf(b)); }
                         }
-                         
-                         
-                  //if wrong syntax
-                        else{System.out.println(PWord.get(a).get(b)+"invalid wrong syntax"+PWord.indexOf(b)); }  
+                         else{System.out.println(PWord.get(a).get(b)+"invalid wrong syntax-DT (missing VAR)"+PWord.indexOf(b));break; }
                   }
                 //INPUT VAR - Only input is BEG 
                 //current problem - accepts only BEG, need to check if it's the last element in the array
                 else if(PWord.get(a).get(b).equals("BEG")&&b!=PWord.lastIndexOf(PWord.get(a))-1){
-                    System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b+"\nINPUT VAR = 1 ele ");
+                    
                     b++;
                    //BEG IDENT
                    if(PWord.get(a).get(b).equals("IDENT")){
@@ -236,17 +236,106 @@ public class IOL_Project {
                    //INVALID
                    else{ System.out.println(PWord.get(a).get(b)+"invalid"+PWord.indexOf(b)); }
                 }
-               
-               
-               
-               
-               //PROBLEM:if line has only one element
-                else if(b==PWord.get(a).size()-1){
-                  System.out.println(PWord.get(a).get(b)+"invalid wrong syntax, only one element"+PWord.indexOf(b)); 
+                
+                //OUTPUT VAR - Print Variable 
+                else if(PWord.get(a).get(b).equals("PRINT")&&b!=PWord.lastIndexOf(PWord.get(a))-1){
+                    b++;
+                   //BEG IDENT
+                   if(PWord.get(a).get(b).equals("IDENT")){
+                    System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b+"\nINPUT VAR = VALID ");
+                    }
+                   //INVALID
+                   else{ System.out.println(PWord.get(a).get(b)+"invalid"+PWord.indexOf(b)); }
                 }
+                
+                
+                
+                //ASSIGN → INTO VAR IS EXPR 
+                //saving variables (first word of the line)--- DT VAR | DT VAR IS VAL
+                else if(PWord.get(a).get(b).equals("INTO")&&b!=PWord.lastIndexOf(PWord.get(a))-1){
+                     b++;
+                        //INTO IDENT IS MULT
+                         if(PWord.get(a).get(b).equals("IDENT")){
+                          System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b); 
+                          b++;
+                          if(PWord.get(a).get(b).equals("IS")){
+                            System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b); 
+                            b++; 
+                            //INTO VAR IS EXPR 
+                            if(Alloperations.contains(PWord.get(a).get(b))){
+                               System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b); 
+                                    //INTO VAR IS OP 
+                                    while(Alloperations.contains(PWord.get(a).get(b))){ //while op are being read, iterate and push 
+                                        stack.push(PWord.get(a).get(b));
+                                        b++;
+                                    } 
+                                    //read numerical value or NUMERICAL variable
+                                    //INTO VAR IS OP INT_LIT|IDENT
+                                    if(PWord.get(a).get(b).equals("INT_LIT")){
+                                        stack.push(PWord.get(a).get(b));
+                                    } 
+                                    else if(PWord.get(a).get(b).equals("IDENT")){//PROBLEM: CHECK DT OF IDENT
+                                        stack.push(PWord.get(a).get(b));
+                                    }
+                                    else{System.out.println(PWord.get(a).get(b)+"invalid wrong syntax - only OP are found "+b);break; }
+
+                                    b++;
+                                    //INTO VAR IS OP INT_LIT|IDENT INT_LIT|IDENT 
+                                    if(PWord.get(a).get(b).equals("INT_LIT")){
+                                        stack.push(PWord.get(a).get(b));
+                                    } 
+                                    else if(PWord.get(a).get(b).equals("IDENT")){//PROBLEM: CHECK DT OF IDENT
+                                        stack.push(PWord.get(a).get(b));
+                                    }
+                                    else{System.out.println(PWord.get(a).get(b)+"invalid wrong syntax - only OP VAL|OP VAL are found "+b);break; }
+                                    System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b+"\nINTO IDENT IS OP EXPR EXPR = VALID "); 
+                            }
+                            else{System.out.println(PWord.get(a).get(b)+"invalid wrong syntax - only INTO IS found "+b);break; }  
+                          } 
+                          
+                        }
+                    else{System.out.println(PWord.get(a).get(b)+"invalid wrong syntax - only INTO is found "+b);break; }     
+                }        
+                //EXPR  → ADD EXPR EXPR | SUB EXPR EXPR | MULT EXPR EXPR | DIV EXPR EXPR | MOD EXPR EXPR | INT |
+                //if EXPR starts with OPERATION
+                else if(Alloperations.contains(PWord.get(a).get(b))){
+                   
+                   while(Alloperations.contains(PWord.get(a).get(b))){ //while op are being read, iterate and push 
+                       stack.push(PWord.get(a).get(b));
+                       b++;
+                   } 
+                   //read numerical value or NUMERICAL variable
+                   if(PWord.get(a).get(b).equals("INT_LIT")){
+                       stack.push(PWord.get(a).get(b));
+                   } 
+                   else if(PWord.get(a).get(b).equals("IDENT")){//PROBLEM: CHECK DT OF IDENT
+                       stack.push(PWord.get(a).get(b));
+                   }
+                   else{System.out.println(PWord.get(a).get(b)+"invalid wrong syntax - only OP are found "+b);break; }
+                    
+                   b++;
+                   if(PWord.get(a).get(b).equals("INT_LIT")){
+                       stack.push(PWord.get(a).get(b));
+                   } 
+                   else if(PWord.get(a).get(b).equals("IDENT")){//PROBLEM: CHECK DT OF IDENT
+                       stack.push(PWord.get(a).get(b));
+                   }
+                   else{System.out.println(PWord.get(a).get(b)+"invalid wrong syntax - only OP VAL|OP VAL are found "+b);break; }
+                   System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b+"\n OP EXPR EXPR = VALID "); 
+                }
+                
+                
+               //PROBLEM:if line has only one element(b=0)
+               if(PWord.get(a).size()==-1){
+                  System.out.println(PWord.get(a).get(b)+"invalid wrong syntax, only one element"+PWord.indexOf(b)); 
+                } 
+               
+               
+               
+               
                         
                     
-               else{System.out.println(PWord.get(a).get(b)+"invalid wrong syntax"+PWord.indexOf(b)); }  
+//               else{System.out.println(PWord.get(a).get(b)+"invalid wrong syntax"+PWord.indexOf(b)); }  
         //if last in array
       if(PWord.get(a).size()!=b)
        b++;
