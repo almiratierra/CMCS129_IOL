@@ -1,7 +1,5 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+Function: Parser 
  */
 package iol_project;
 import java.util.Set;
@@ -139,46 +137,7 @@ public class IOL_Project {
          }   
        } 
         
-       
-/*
-       ----CODE START--------
-       
-       */       
-    //traverse thru each line
-//    for(int a=0;a<=inputlines.size()-1;a++){ 
-//        int b=0;
-//        //traverse thru each word per line
-//        while (PWord.get(a).size()-1 > b) {
-////                   System.out.println(PWord.get(a).get(b));//gets each word (INT) line by line
-//               stack.push(PWord.get(a).get(b)); 
-//               //saving variables (first word of the line)--- DT VAR | DT VAR IS VAL
-//                    if(AllDT.contains(PWord.get(a).get(0))==true){
-//                    System.out.println(PWord.get(a).get(0));
-//                    b++;
-//                      //if DT VAR in one line
-//                      if(PWord.get(a).get(b).equals("IDENT")&&PWord.get(a).size()-1==1){
-//                        System.out.println(PWord.get(a)+" valid"); 
-//                        break;
-//                    }
-//                     //if DT VAR IS VAL in one line
-//                      if(PWord.get(a).get(b).equals("IDENT")){
-//                        b++;
-//                        if(PWord.get(a).get(b).equals("IDENT")){
-//                            System.out.println(PWord.get(a)+" valid"); 
-//                            b++;
-//                            
-//                        }
-//                        }  
-//                      
-//                      
-//               }
-//        b++;            
-//       }      
-//    
-//      
-//    }     
-         
-         
+     
          
  /*        
     IMPLEMENT USING STACK     
@@ -190,11 +149,14 @@ public class IOL_Project {
       //print info per line
       System.out.println("\n------------------------\nLINE "+(a+1)+" INFORMATION"+"\nnum. of elements:"+PWord.get(a).size()+"\n"+PWord.get(a));
 //               System.out.println(PWord.get(a)); //gets array per line
-                if(PWord.get(a).size()==1){
-                  System.out.println(PWord.get(a).get(b)+"invalid wrong syntax, only one element"+PWord.indexOf(b)); 
+//               System.out.println(PWord.get(a).get(b));//gets each word  line by line 
+                //INVALID when only one element is present
+                if(PWord.get(a).size()==1&&((PWord.get(a).get(b).equals("NEWLN"))==false)){
+                  System.out.println(PWord.get(a).get(b)+" invalid wrong syntax, only one element"+PWord.get(a).get(b));
                 }
+               //-------Line per line SYNTAX CHECKING starts here--------
                while (PWord.get(a).size()-1 > b) {
-//                   System.out.println(PWord.get(a).get(b));//gets each word (INT) line by line    
+   
                 System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b); 
                
                 //saving variables (first word of the line)--- DT VAR | DT VAR IS VAL
@@ -237,17 +199,35 @@ public class IOL_Project {
                    else{ System.out.println(PWord.get(a).get(b)+"invalid"+PWord.indexOf(b)); }
                 }
                 
-                //OUTPUT VAR - Print Variable 
+                //OUTPUT VAR | OUTPUT VAR- Print Variable 
                 else if(PWord.get(a).get(b).equals("PRINT")&&b!=PWord.lastIndexOf(PWord.get(a))-1){
                     b++;
-                   //BEG IDENT
-                   if(PWord.get(a).get(b).equals("IDENT")){
-                    System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b+"\nINPUT VAR = VALID ");
+                   //PRINT IDENT
+                   if(PWord.get(a).get(b).equals("IDENT")||PWord.get(a).get(b).equals("INT_LIT")){
+                        System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b+"\nINPUT VAR = VALID ");
                     }
-                   //INVALID
-                   else{ System.out.println(PWord.get(a).get(b)+"invalid"+PWord.indexOf(b)); }
-                }
-                
+                   //OP EXPR EXPR
+                   else if(Alloperations.contains(PWord.get(a).get(b))){
+                               
+                                    //INTO VAR IS OP 
+                                    while(Alloperations.contains(PWord.get(a).get(b))){ //while op are being read, iterate and push 
+                                        System.out.println("\nElement : "+PWord.get(a).get(b)+"\nIndex: "+b); 
+                                        b++;
+                                    } 
+                                    //OP INT_LIT|OP IDENT 
+                                    if(PWord.get(a).get(b).equals("INT_LIT")||PWord.get(a).get(b).equals("IDENT")&&PWord.get(a).size()-1!=b){
+                                        System.out.println("\nElement : "+PWord.get(a).get(b)+"\nIndex: "+b); 
+                                        b++;
+                                        if(PWord.get(a).get(b).equals("INT_LIT")||PWord.get(a).get(b).equals("IDENT")){
+                                            System.out.println("\nElement: "+PWord.get(a).get(b)+"\nIndex: "+b+"\nOP EXPR EXPR = VALID");      
+                                        }
+                                        else{System.out.println(PWord.get(a).get(b)+"invalid wrong syntax - only OP EXPR !EXPR is found "+b);break; }
+                                        
+                                    } 
+                                    else{System.out.println(PWord.get(a).get(b)+"invalid wrong syntax - only OP EXPR is found "+b);break; }
+                    }   
+                   else{ System.out.println(PWord.get(a).get(b)+"whyinvalid"+PWord.indexOf(b));break;}
+                }                
                 
                 
                 //ASSIGN → INTO VAR IS EXPR 
@@ -326,9 +306,7 @@ public class IOL_Project {
                 
                 
                //PROBLEM:if line has only one element(b=0)
-               if(PWord.get(a).size()==-1){
-                  System.out.println(PWord.get(a).get(b)+"invalid wrong syntax, only one element"+PWord.indexOf(b)); 
-                } 
+               
                
                
                
