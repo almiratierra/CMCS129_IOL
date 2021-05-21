@@ -205,7 +205,7 @@ public class IOL_ProgramExe {
                 
                 //IF strVariable is read
                 if(AllOPR.contains(readWord.get(wordIndex))){
-                    System.out.println("PRINT: " + readWord.get(wordIndex));
+//                     System.out.println("PRINT: " + readWord.get(wordIndex));
                     String calc = isOPR(readWord, wordIndex, int_VarVal, AllOPR, ArithOPR);
                     Integer arithValue = evaluatePrefix(calc);
                     System.out.print(arithValue);
