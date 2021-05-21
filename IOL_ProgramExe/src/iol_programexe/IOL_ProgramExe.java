@@ -206,25 +206,17 @@ public class IOL_ProgramExe {
                         2. PRINT  an INT variable values (ex. INT num IS 0 PRINT num)
                 */
                 wordIndex++;
-                System.out.print(str_varval.put(readWord.get(wordIndex), str_Val.get(str_Val.size()-1)));
+                //IF PRINT stringVariable is read
+                if(str_varval.containsKey(readWord.get(wordIndex))){
+                    System.out.print(str_varval.put(readWord.get(wordIndex), str_Val.get(str_Val.size()-1)));
+                } 
+                //IF PRINT intVariable is read
+                else if(int_varval.containsKey(readWord.get(wordIndex))){
+                    System.out.print(int_varval.put(readWord.get(wordIndex), int_Val.get(int_Val.size()-1)));
+                } 
+                //add if statement if arithOPR is read
                 
-                
-                //TEST CODE FOR PRINT-------------------------------------------------------------------
-                /*
-                    System.out.println(int_varval);
-                    System.out.println(str_varval.get(readWord.get(wordIndex))); 
-
-                    if(str_varval.containsKey(str_varval.get(readWord.get(wordIndex)))){
-                        System.out.println("PRINT STR VAL");
-                        System.out.print(str_varval.put(readWord.get(wordIndex), str_Val.get(str_Val.size()-1)));
-                    } else if(int_varval.containsKey(int_varval.get(readWord.get(wordIndex)))){
-                        System.out.println("PRINT INT VAL");
-                        System.out.print(int_varval.put(readWord.get(wordIndex), int_Val.get(int_Val.size()-1)));
-                    }
-                    else{
-                        System.out.println("did not enter if else");
-                    }
-                */
+              
                 
                 break;
                 
@@ -261,10 +253,9 @@ public class IOL_ProgramExe {
                     }  
                     
                     //results from arith
-                    String valeee = ArithOPR.toString();
-                    Integer arithValue = evaluatePrefix(valeee);
+                    String arithVal = ArithOPR.toString();
+                    Integer arithValue = evaluatePrefix(arithVal);
                     int_varval.put(readWord.get(wordIndex-4), arithValue);
-                    System.out.println("int_varval: " + int_varval);
                 } 
                 //INTO VAR IS VAL
                 else{
@@ -364,7 +355,7 @@ public class IOL_ProgramExe {
     
     public static Integer evaluatePrefix(String string){
         //change Word operations to oper
-        String exprsn = string.replaceAll("MULT","*").replaceAll("DIV","/").replaceAll("ADD","+").replaceAll("SUB","-").replaceAll("MOD","%").replaceAll("/*\\[*/", "").replaceAll("]", "").replaceAll(",", "").replaceAll(" ", "");
+        String exprsn = string.replaceAll("MULT","*").replaceAll("DIV","/").replaceAll("ADD","+").replaceAll("SUB","-").replaceAll("MOD","%").replaceAll("\\[", "").replaceAll("]", "").replaceAll(",", "").replaceAll(" ", "");
         Stack<Double> Stack = new Stack<Double>();
  
         for (int j = exprsn.length() - 1; j >= 0; j--){
@@ -378,8 +369,9 @@ public class IOL_ProgramExe {
                 // Operator encountered
                 // Pop two elements from Stack
                 double o1 = Stack.peek();
-                double o2 = Stack.peek();
                 Stack.pop();
+                
+                double o2 = Stack.peek();
                 Stack.pop();
  
                 // Use switch case to operate on o1
