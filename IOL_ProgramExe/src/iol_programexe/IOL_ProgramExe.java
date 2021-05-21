@@ -4,35 +4,19 @@
  * and open the template in the editor.
  */
 package javaapplication1;
-import java.util.Set;
 
-import java.util.Collection; 
-import java.util.Map.Entry; 
 import java.util.LinkedHashMap;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.text.DecimalFormat;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Stack;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.EmptyStackException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.StringTokenizer;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import jdk.nashorn.internal.ir.BreakNode;
-import sun.awt.shell.ShellFolder;
 /**
  *
  * @author USER
@@ -50,14 +34,19 @@ public class IOL_ProgramExe {
         List<String> AllDT = Arrays.asList(DT);
         List<String> AllOPR = Arrays.asList(OPR);
         
-        ArrayList<String> var = new ArrayList<>(); //list of variables
-        ArrayList<Integer> val = new ArrayList<>();//list of values
-        ArrayList<String> sval = new ArrayList<>();//list of string values
+        ArrayList<String> var = new ArrayList<>(); //list of variables names
+        ArrayList<Integer> val = new ArrayList<>();//list of int assigned values
+        ArrayList<String> sval = new ArrayList<>();//list of string assigned values
+        ArrayList<String> svar = new ArrayList<>(); //list of string variables
+        ArrayList<String> ivar = new ArrayList<>(); //list of integer variables
         
         Stack<String> ArithOPR = new Stack<>();
         
-        HashMap<String,Integer> varval = new HashMap<>();
-        HashMap<String,String> svarval = new HashMap<>();
+        HashMap<String,Integer> varval = new HashMap<>();//hashmap for (varname, assigned value)
+        HashMap<String,String> svarval = new HashMap<>();//hasmap for (varname, assgined value)
+        HashMap<String, ArrayList<String>> dtsvarval = new HashMap<>(); //hashmap for varnames and their corresponding data type
+        
+        
         
         String line;
         Scanner input = new Scanner(System.in);
@@ -65,7 +54,7 @@ public class IOL_ProgramExe {
         ArrayList<String> inputlines = new ArrayList<>(); //number of rows
         ArrayList <ArrayList<String>> PWord=new ArrayList <>();//per word 
         
-        LinkedHashMap<ArrayList<String>, ArrayList<String>> values = new LinkedHashMap<ArrayList<String>, ArrayList<String>>(); 
+        LinkedHashMap<ArrayList<String>, ArrayList<String>> values = new LinkedHashMap<>(); 
         
         File file=new File("C:\\Users\\tierr\\Desktop\\IOLtoken.iol");
         FileReader filer = new FileReader(file);
@@ -82,7 +71,7 @@ public class IOL_ProgramExe {
         //FOR LOOP that reads every word in every line (element) in inputLines arraylist
         for(int a=0; a < inputlines.size(); a++){
 //             Stack<String> s = new Stack<>();
-//             System.out.println(lines[i]);
+            //System.out.println(lines[i]);
 
             //save per word in a line
             String woo[] = inputlines.get(a).split("\\s+");
@@ -99,25 +88,16 @@ public class IOL_ProgramExe {
             //WHILE LOOP for every word read
             while(PWord.get(a).size() > b) {
                 //DEFINING VARIABLES
-                
+                //INT/STR read
                 ArrayList<String> readWord = PWord.get(a);
                 
                 if(!AllDT.contains(readWord.get(b))){
                     //Enters function that reads words that are: NEWLN, IS, INTO, BEG, PRINT
-                    ProgramOperations(ArithOPR, AllOPR,input, readWord, b, var, sval,svarval, val, varval);
+                    ProgramOperations(ArithOPR, AllOPR, input, readWord, b, var, dtsvarval, sval, svarval, val, varval);
                 }
                 else{
-                    //INT or STR read
-                    CheckDataType(readWord, b, var, sval,svarval, val, varval);
+                    CheckDataType(readWord, b, var, dtsvarval, sval, svar, svarval, val, ivar, varval);
                 }
-                
-//                if(AllDT.contains(readWord.get(b))){
-//                    //Enters function that differentiates if variable is INT or STR
-//                    CheckDataType(readWord, b, var, sval,svarval, val, varval);
-//                }   
-//                else{
-////                    ProgramOperations(ArithOPR, AllOPR,input, readWord, b, var, sval,svarval, val, varval);
-//                }
                 
                 //---DO NOT REMOVE---
                 if(readWord.size()!=b){
@@ -127,11 +107,15 @@ public class IOL_ProgramExe {
         }
     }
     
-    public static void CheckDataType(ArrayList<String> readWord, int wordIndex, ArrayList<String> var_names, ArrayList<String> str_Val, HashMap<String,String> str_varval, ArrayList<Integer> int_Val, HashMap<String,Integer> int_varval){
+    public static void CheckDataType(ArrayList<String> readWord, int wordIndex, ArrayList<String> var_names, HashMap<String, 
+            ArrayList<String>> var_dataType, ArrayList<String> str_Val, ArrayList<String> str_Var, HashMap<String,String> str_VarVal, 
+            ArrayList<Integer> int_Val, ArrayList<String> int_Var, HashMap<String,Integer> int_VarVal){
         /*
             This function checks if the word scanned is INT or STR
-            varval = int_varval,      svarval = str_varval,   var = var_names
-            val    = int_Val,         varval  = int_Val,      b   = wordIndex
+            b = wordIndex   readWord = PWord.get(a)
+            var          = var_names    sval    = str_Val       val    = int_Val    
+            var_dataType = dtsvarval    svar    = str_Var       ivar   = int_Var
+                                        svarval = str_VarVal    varval = int_VarVal
         */
         
         //IF STR IS READ
@@ -139,34 +123,39 @@ public class IOL_ProgramExe {
 //            System.out.println("Data type is a STRING.");
             wordIndex++;
             var_names.add(readWord.get(wordIndex));
+            str_Var.add(readWord.get(wordIndex));
+            
             str_Val.add(" ");
-            str_varval.put(var_names.get(var_names.size()-1), str_Val.get(str_Val.size()-1));
-//            System.out.println("str_vals"+str_varval);
+            str_VarVal.put(readWord.get(wordIndex), str_Val.get(str_Val.size()-1));
+            var_dataType.put(readWord.get(wordIndex-1), str_Var);
+//            System.out.println("var_dataType STR "+var_dataType);
 
-            //For variables with assigned values
-            if(readWord.size() != wordIndex){
-//                System.out.println(readWord.size());
-//                System.out.println(wordIndex);
-                wordIndex++;
-            }
         } 
         //IF INT IS READ
         else{       
 //            System.out.println("Data type is an INTEGER.");
             wordIndex++;
             var_names.add(readWord.get(wordIndex));
-            int_Val.add(0);
-            int_varval.put(var_names.get(var_names.size()-1), int_Val.get(int_Val.size()-1));
-//            System.out.println(int_varval);
+            int_Var.add(readWord.get(wordIndex));
             
-            //For variables with assigned values
-            if(readWord.size() != wordIndex){
-                wordIndex++;
+            int_Val.add(0);
+            int_VarVal.put(readWord.get(wordIndex), int_Val.get(int_Val.size()-1));
+            var_dataType.put(readWord.get(wordIndex-1), int_Var);
+//            System.out.println("var_dataType INT "+var_dataType);
+            
+            //IF INT variable has assigned value
+            if(readWord.size()-1 != wordIndex && readWord.get(wordIndex+1).equals("IS")){
+                wordIndex++; wordIndex++;
+                int_Val.add(strToInt(readWord.get(wordIndex)));
+                int_VarVal.put(readWord.get(wordIndex-2), int_Val.get(int_Val.size()-1));
+                var_dataType.put(readWord.get(wordIndex-3), int_Var);
             }
         }
     }
     
-    public static void ProgramOperations(Stack<String> ArithOPR, List<String> AllOPR, Scanner input, ArrayList<String> readWord, int wordIndex, ArrayList<String> var_names, ArrayList<String> str_Val, HashMap<String,String> str_varval, ArrayList<Integer> int_Val, HashMap<String,Integer> int_varval){
+    public static void ProgramOperations(Stack<String> ArithOPR, List<String> AllOPR, Scanner input, ArrayList<String> readWord, int wordIndex, 
+            ArrayList<String> var_names, HashMap<String, ArrayList<String>> var_dataType, ArrayList<String> str_Val, HashMap<String,String> str_VarVal, 
+            ArrayList<Integer> int_Val, HashMap<String,Integer> int_VarVal){
         //This function deals with operations NEWLN, IS, INTO, BEG, PRINT
         
         switch (readWord.get(wordIndex)) {
@@ -176,91 +165,77 @@ public class IOL_ProgramExe {
                 
             case "IS":     //IS read for INT
                 wordIndex++;
-                
                 if(isInteger(readWord.get(wordIndex))){
                     int_Val.add(strToInt(readWord.get(wordIndex)));
-                    int_varval.put(var_names.get(var_names.size()-1), int_Val.get(int_Val.size()-1));
-//                    System.out.println(int_varval);
-                } else{
-                    str_Val.add(readWord.get(wordIndex));
-                    str_varval.put(var_names.get(var_names.size()-1), str_Val.get(str_Val.size()-1));
+                    int_VarVal.put(var_names.get(var_names.size()-1), int_Val.get(int_Val.size()-1));
+//                    System.out.println(int_VarVal);
                 }
                 break;
                 
             case "BEG":     //BEG read - asks for input
-                //BEG should be able to check if variable na gina beg is INT or STR?
-                //will only store values in string hashmap
                 System.out.print("Input for "+ readWord.get(wordIndex+1) +": ");
                 String beg_input = input.nextLine();
-                
                 wordIndex++;
-                str_Val.add(beg_input);
-                str_varval.put(readWord.get(wordIndex), str_Val.get(str_Val.size()-1));
+                
+                //TYPE CHECKING------------------
+                //IF PRINT VAR (INT)
+                if(var_dataType.get("INT") != null && var_dataType.get("INT").contains(readWord.get(wordIndex)) 
+                        && isInteger(beg_input)){
+                    int_Val.add(strToInt(beg_input));
+                    int_VarVal.put(readWord.get(wordIndex), int_Val.get(int_Val.size()-1));
+//                    System.out.println(int_VarVal); //TEST ONLY - SHOULD NOT PRINT  
+//                    System.out.println(int_VarVal.put(readWord.get(wordIndex), int_Val.get(int_Val.size()-1)));
+                }
+                //IF PRINT VAR (STR)
+                else if(var_dataType.get("STR") != null && var_dataType.get("STR").contains(readWord.get(wordIndex)) 
+                        && !isInteger(beg_input)){
+                    str_Val.add(beg_input);
+                    str_VarVal.put(readWord.get(wordIndex), str_Val.get(str_Val.size()-1));
+//                    System.out.println(str_VarVal); //TEST ONLY - SHOULD NOT PRINT
+
+                }
+                else{
+                    //insert DATA TYPE INCOMPATIBLE ERROR and terminate program
+                    System.out.println("WRONG DATA TYPE");
+                } 
                 break;
             
             case "PRINT":   //PRINT read - prints specified STR variable
-                /*
-                    Function can ONLY print STR variable
-                    cannot yet:
-                        1. do direct print of arithmetic operation value (ex. PRINT MULT num 2)
-                        2. PRINT  an INT variable values (ex. INT num IS 0 PRINT num)
-                */
                 wordIndex++;
-                //IF PRINT stringVariable is read
-                if(str_varval.containsKey(readWord.get(wordIndex))){
-                    System.out.print(str_varval.put(readWord.get(wordIndex), str_Val.get(str_Val.size()-1)));
-                } 
-                //IF PRINT intVariable is read
-                else if(int_varval.containsKey(readWord.get(wordIndex))){
-                    System.out.print(int_varval.put(readWord.get(wordIndex), int_Val.get(int_Val.size()-1)));
-                } 
-                //add if statement if arithOPR is read
                 
-              
-                
+                //IF strVariable is read
+                if(AllOPR.contains(readWord.get(wordIndex))){
+                    System.out.println("PRINT: " + readWord.get(wordIndex));
+                    String calc = isOPR(readWord, wordIndex, int_VarVal, AllOPR, ArithOPR);
+                    Integer arithValue = evaluatePrefix(calc);
+                    System.out.print(arithValue);
+                }
+                else{
+                    if(var_dataType.get("INT") != null && var_dataType.get("INT").contains(readWord.get(wordIndex))){
+                        System.out.print(int_VarVal.put(readWord.get(wordIndex), int_VarVal.get(readWord.get(wordIndex))));
+                    }
+                    if(var_dataType.get("STR") != null && var_dataType.get("STR").contains(readWord.get(wordIndex))){
+                        System.out.print(str_VarVal.put(readWord.get(wordIndex), str_VarVal.get(readWord.get(wordIndex))));
+                    }
+                }
                 break;
                 
             case "INTO":
                 //INTO var IS expr
-                wordIndex++; wordIndex++; wordIndex++; 
-                
+                wordIndex++;  wordIndex++; wordIndex++; 
+//                System.err.println(readWord.get(wordIndex));
                 if(AllOPR.contains(readWord.get(wordIndex))){
-                    //INSERT POSTFIX TO INFIX FOR ARITH
-                    while(AllOPR.contains(readWord.get(wordIndex))){
-                        ArithOPR.push(readWord.get(wordIndex));
-                        wordIndex++;
-                    }
-                    
-                    //if IDENT
-                    if(isVar(readWord.get(wordIndex))){
-                        String value = int_varval.get(readWord.get(wordIndex)).toString();
-                        ArithOPR.push(value);
-                    }
-                    
-                    //if VAL
-                    if(isInteger(readWord.get(wordIndex))){
-                        ArithOPR.push(readWord.get(wordIndex));
-                    }
-                    wordIndex++;
-                    //if IDENT
-                    if(isVar(readWord.get(wordIndex))){
-                        String value = int_varval.get(readWord.get(wordIndex)).toString();
-                        ArithOPR.push(value);
-                    }
-                    //if VAL
-                    if(isInteger(readWord.get(wordIndex))){
-                        ArithOPR.push(readWord.get(wordIndex));
-                    }  
-                    
-                    //results from arith
-                    String arithVal = ArithOPR.toString();
-                    Integer arithValue = evaluatePrefix(arithVal);
-                    int_varval.put(readWord.get(wordIndex-4), arithValue);
+                    String calc = isOPR(readWord, wordIndex, int_VarVal, AllOPR, ArithOPR);
+                    Integer arithValue = evaluatePrefix(calc);
+//                    System.out.println("arval "+arithValue);
+//                    System.out.println("wordIndex "+readWord.get(wordIndex-2));
+                    int_VarVal.put(readWord.get(wordIndex-2), arithValue);
+                    System.out.println(int_VarVal);
                 } 
                 //INTO VAR IS VAL
                 else{
-                    int_Val.add(strToInt(readWord.get(+2)));
-                    int_varval.put(readWord.get(wordIndex), int_Val.get(int_Val.size()-1));
+                    int_Val.add(strToInt(readWord.get(wordIndex+2)));
+                    int_VarVal.put(readWord.get(wordIndex), int_Val.get(int_Val.size()-1));
                 }
                 
                 break;
@@ -269,6 +244,44 @@ public class IOL_ProgramExe {
                 break;
         }
     }
+    
+    public static String isOPR(ArrayList<String> readWord, int wordIndex, HashMap<String,Integer> int_VarVal, List<String> AllOPR, Stack<String> ArithOPR){
+    //this functiona allows a statement to do its arithmetic operations
+    //INSERT POSTFIX TO INFIX FOR ARITH
+        while(AllOPR.contains(readWord.get(wordIndex))){
+            ArithOPR.push(readWord.get(wordIndex));
+            wordIndex++;
+        }
+
+        //if IDENT
+        if(isVar(readWord.get(wordIndex))){
+            String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
+            ArithOPR.push(value);
+        }
+
+        //if VAL
+        if(isInteger(readWord.get(wordIndex))){
+            ArithOPR.push(readWord.get(wordIndex));
+        }
+        wordIndex++;
+
+        //if IDENT
+        if(isVar(readWord.get(wordIndex))){
+            String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
+            ArithOPR.push(value);
+        }
+
+        //if VAL
+        if(isInteger(readWord.get(wordIndex))){
+            ArithOPR.push(readWord.get(wordIndex));
+        }  
+
+        //results from arith
+        String arithVal = ArithOPR.toString();
+        return (arithVal);
+    }
+    
+
     
     static boolean checkSpecialChar(char ch) {
         char[] specialCh = {'!','@',']','#','$','%','^','&','*','-','.'}; 
@@ -356,15 +369,15 @@ public class IOL_ProgramExe {
     public static Integer evaluatePrefix(String string){
         //change Word operations to oper
         String exprsn = string.replaceAll("MULT","*").replaceAll("DIV","/").replaceAll("ADD","+").replaceAll("SUB","-").replaceAll("MOD","%").replaceAll("\\[", "").replaceAll("]", "").replaceAll(",", "").replaceAll(" ", "");
-        Stack<Double> Stack = new Stack<Double>();
- 
+        Stack<Double> Stack = new Stack<>();
+        
         for (int j = exprsn.length() - 1; j >= 0; j--){
             // Push operand to Stack
             // To convert exprsn[j] to digit subtract
             // '0' from exprsn[j].
-             
-            if (isOperand(exprsn.charAt(j)))
+            if (isOperand(exprsn.charAt(j))){
                 Stack.push((double)(exprsn.charAt(j) - 48));
+            }
             else{
                 // Operator encountered
                 // Pop two elements from Stack
