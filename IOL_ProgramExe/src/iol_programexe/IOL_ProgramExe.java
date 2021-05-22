@@ -278,6 +278,7 @@ public class IOL_ProgramExe {
 
         //results from arith
         String arithVal = ArithOPR.toString();
+        ArithOPR.clear();
         return (arithVal);
     }
     
