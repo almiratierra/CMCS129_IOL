@@ -44,6 +44,7 @@ class IOL_GUI extends javax.swing.JFrame{
     private String filePath = "";
     private int tabInd; 
     
+    ArrayList<String> AllLexemes = new ArrayList<>(Arrays.asList("IOL", "LOI", "NEWLN", "IS", "INTO", "BEG", "PRINT", "INT", "STR", "ADD","SUB" ,"MULT", "MOD", "DIV"));
     String[] OPR = new String[]{"MOD","DIV", "MULT","SUB", "ADD",}; //arith operation
     List<String> var = new ArrayList<>(); //list of variables names
     List<String> AllOPR = Arrays.asList(OPR);
@@ -67,11 +68,14 @@ class IOL_GUI extends javax.swing.JFrame{
         jMenuItem1 = new javax.swing.JMenuItem();
         jScrollPane2 = new javax.swing.JScrollPane();
         ConsoleTxtArea = new javax.swing.JTextArea();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        TokenTable = new javax.swing.JTable();
         TabbedPane = new javax.swing.JTabbedPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         CodeEditorTxtArea = new javax.swing.JTextArea();
+        TokenizerTabbedPane = new javax.swing.JTabbedPane();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        VariableTable = new javax.swing.JTable();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        TokenTable = new javax.swing.JTable();
         jMenuBar1 = new javax.swing.JMenuBar();
         FileMenu = new javax.swing.JMenu();
         NewMenuItem = new javax.swing.JMenuItem();
@@ -92,6 +96,32 @@ class IOL_GUI extends javax.swing.JFrame{
         ConsoleTxtArea.setRows(5);
         jScrollPane2.setViewportView(ConsoleTxtArea);
 
+        CodeEditorTxtArea.setColumns(20);
+        CodeEditorTxtArea.setRows(5);
+        jScrollPane1.setViewportView(CodeEditorTxtArea);
+
+        TabbedPane.addTab("Untitled Tab", jScrollPane1);
+
+        VariableTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Variable", "Values"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane4.setViewportView(VariableTable);
+
+        TokenizerTabbedPane.addTab("Variables", jScrollPane4);
+
         TokenTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -99,14 +129,18 @@ class IOL_GUI extends javax.swing.JFrame{
             new String [] {
                 "Name", "Type"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane3.setViewportView(TokenTable);
 
-        CodeEditorTxtArea.setColumns(20);
-        CodeEditorTxtArea.setRows(5);
-        jScrollPane1.setViewportView(CodeEditorTxtArea);
-
-        TabbedPane.addTab("Untitled Tab", jScrollPane1);
+        TokenizerTabbedPane.addTab("Lexeme Token", jScrollPane3);
 
         FileMenu.setText("File");
         FileMenu.addActionListener(new java.awt.event.ActionListener() {
@@ -202,23 +236,25 @@ class IOL_GUI extends javax.swing.JFrame{
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 508, Short.MAX_VALUE)
-                    .addComponent(TabbedPane))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 225, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 421, Short.MAX_VALUE)
+                    .addComponent(TabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 421, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(TokenizerTabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(TabbedPane, javax.swing.GroupLayout.PREFERRED_SIZE, 320, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2)
-                .addGap(12, 12, 12))
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jScrollPane3)
-                .addGap(21, 21, 21))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(TabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE)
+                        .addGap(12, 12, 12))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(TokenizerTabbedPane, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                        .addContainerGap())))
         );
 
         TabbedPane.getAccessibleContext().setAccessibleName("Untitled Tab");
@@ -345,28 +381,26 @@ class IOL_GUI extends javax.swing.JFrame{
         //TRY TO PUT THIS IN A METHOD
         String[] readLines = readTextArea();
         List<String> list = new ArrayList<>();
-        Collections.addAll(list, readLines);
+//        Collections.addAll(list, readLines);
         Stack<String> stacks = new Stack<>();
         
         String delim = " ";
         String str = String.join(delim, readLines);
         
         String words[] = str.split("\\s+");
-        stacks = ErrorChecker.stringArr(words);
+        int arrLength = words.length;
+        list = ErrorChecker.stringArr(words, ConsoleTxtArea);
         
-        List<String> preTokens = new ArrayList<>();
-        List<String> finalTokens = new ArrayList<>();
-        String tkn;
-
-        int ctr=1;
-        while(ctr<list.size()-1){
-           int count=0;
-
-           String newStr = list.get(ctr).trim();
-           preTokens = ErrorChecker.getTokens(newStr, var, AllOPR);
-           //System.out.println(preTokens);
-           ctr++;
-        }
+        List<String> ERR_LEX = new ArrayList<>();
+//        int ctr = 1;
+//        while(ctr < list.size()-1){
+//             
+//           String newStr = list.get(ctr).trim();
+//           System.out.println("newStr " + newStr);
+//           ERR_LEX = ErrorChecker.getTokens(newStr, var, AllOPR, ConsoleTxtArea);
+//           ctr++;
+//        }
+        tokenizer(words, ERR_LEX);
     }//GEN-LAST:event_CompileMenuItemActionPerformed
  
     private void ExecuteMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ExecuteMenuItemActionPerformed
@@ -436,11 +470,12 @@ class IOL_GUI extends javax.swing.JFrame{
                 } else break;   
             }
         }
+        
     }//GEN-LAST:event_ExecuteMenuItemActionPerformed
 
     private void TokenizedMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TokenizedMenuItemActionPerformed
         // TODO add your handling code here:
-        tokenizer();
+        
     }//GEN-LAST:event_TokenizedMenuItemActionPerformed
     
     
@@ -494,28 +529,6 @@ class IOL_GUI extends javax.swing.JFrame{
         return sentenceLines;
     }
     
-//    public static void LineNumberSetter(JTextArea SetLineNumber, JScrollPane SetScrollPane){
-//        LineNumbering lineNumberingTextArea = new LineNumbering(SetLineNumber);
-//        SetScrollPane.setRowHeaderView(lineNumberingTextArea);
-//
-//        SetLineNumber.getDocument().addDocumentListener(new DocumentListener() {
-//            @Override
-//            public void insertUpdate(DocumentEvent documentEvent){
-//                lineNumberingTextArea.updateLineNumbers();
-//            }
-//
-//            @Override
-//            public void removeUpdate(DocumentEvent documentEvent){
-//                lineNumberingTextArea.updateLineNumbers();
-//            }
-//
-//            @Override
-//            public void changedUpdate(DocumentEvent documentEvent){
-//                lineNumberingTextArea.updateLineNumbers();
-//            }
-//        });
-//    }
-    
     public static void LineNumberSetter(JTextArea SetLineNumber, JScrollPane SetScrollPane){
         LineNumberingForEditor lineNumberingTextArea = new LineNumberingForEditor(SetLineNumber);
         SetScrollPane.setRowHeaderView(lineNumberingTextArea);
@@ -538,110 +551,76 @@ class IOL_GUI extends javax.swing.JFrame{
         });
     }
     
-//    public ArrayList<ArrayList<String>> TextToArrayList(){
-//        String[] sentenceLines = readTextArea();
-//	ArrayList<String> inputlines = new ArrayList<>();
-//	ArrayList <ArrayList<String>> PWord=new ArrayList <>();//per word 
-//
-//	int i = 0;
-//        while(i != sentenceLines.length){
-//            inputlines.add(sentenceLines[i]);
-//            i++;
-//        }
-//        //FOR LOOP that reads every word in every line (element) in inputLines arraylist
-//        for(int a=0; a < inputlines.size(); a++){
-//            //save per word in a line
-//            String woo[] = inputlines.get(a).split("\\s+");
-//            ArrayList <String> perword = new ArrayList <>();
-//
-//            perword.addAll(Arrays.asList(woo));
-//            PWord.add(perword);//Main arraylist
-//        }
-//        return PWord;
-//    }
-    
-    
-    //FUNCTIONS BELOW DEALS WITH ERROR CHECKING
-    //checks IOL and LOI placements
-    
-    
-    public void tokenizer(){
+    public void tokenizer(String[] words, List<String> ERR_LEX){
         //loops through sentenclines
-        String[] sentenceLines = readTextArea();
-        ArrayList<String> inputlines = new ArrayList<>();
-        ArrayList <ArrayList<String>> PWord=new ArrayList <>();//per word 
-        
-        ArrayList<String> Keywords = new ArrayList(Arrays.asList("IOL", "LOI", "NEWLN", "IS", "INTO", "BEG", "PRINT", "INT", "STR", "ADD","SUB" ,"MULT", "MOD", "DIV")); 
-        ArrayList<String> INT_LIT = new ArrayList<>(); 
+        ArrayList<String> Keywords = new ArrayList<>(); 
         ArrayList<String> IDENT = new ArrayList<>();
-        ArrayList<String> ERR_LEX = new ArrayList<>(); 
+        
+        HashMap<String, String> VarAndVal = new HashMap<>();
         
         DefaultTableModel TknTable = (DefaultTableModel)TokenTable.getModel();
-        Object rowData[] = new Object[2];
+        DefaultTableModel VarValTable = (DefaultTableModel)VariableTable.getModel();
+        Object tokenRow[] = new Object[2];
+        Object varRow[] = new Object[2];
+        
         TknTable.setRowCount(0); //removes all rows of previous tokenized code
+        VarValTable.setRowCount(0);
         
-        int i = 0;
-        while(i != sentenceLines.length){
-            inputlines.add(sentenceLines[i]);
-            i++;
-        }
-        
-        //FOR LOOP that reads every word in every line (element) in inputLines arraylist
-        for(int a = 0; a < inputlines.size(); a++){
-            //save per word in a line
-            String woo[] = inputlines.get(a).split("\\s+");
-            ArrayList <String> perword = new ArrayList <>();
-            perword.addAll(Arrays.asList(woo));
-            PWord.add(perword);//Main arraylist
-        }
-        
-        for(int a = 0; a < inputlines.size(); a++){
+        for(int a = 0; a < words.length; a++){
             int b = 0;
-            
-            //WHILE LOOP for every word read
-            while(PWord.get(a).size() > b) {
-                ArrayList<String> readWord = PWord.get(a);
-                
-                if(readWord.get(b).isEmpty()){
-                    //do nothing
-                }
-                //if keywords
-                else if(Keywords.contains(readWord.get(b))){
-                    rowData[0] = readWord.get(b);   //STORES varname
-                    rowData[1] = readWord.get(b);   //store vartype
-                    TknTable.addRow(rowData);
-                }
-                //IDENT
-                else if(Keywords.contains(readWord.get(b)) == false && isVar(readWord.get(b))){
-                    if(!IDENT.contains(readWord.get(b))){
-                        IDENT.add(readWord.get(b));
-                    }
-                    rowData[0] = readWord.get(b);
-                    rowData[1] = "IDENT";
-                    TknTable.addRow(rowData);
-                }
-                //numbers
-                else if(isInteger(readWord.get(b))==true){
-                    INT_LIT.add(readWord.get(b));
-                    rowData[0] = readWord.get(b);
-                    rowData[1] = "INT_LIT";
-//                    rowData[0] = readWord.get(b);
-//                    INT_LIT.add(readWord.get(b));
-//                    rowData[1] = "INT_LIT";
-                    TknTable.addRow(rowData);
-                } else{
-                    ERR_LEX.add(readWord.get(b));
-                }
-                if(readWord.size()!=b){
-                    b++;
-                } else break;   
+             
+            if(words[a].isEmpty()){
+                //do nothing
             }
+            //IF WORD READ IS A KEYWORD
+            else if(AllLexemes.contains(words[a]) && Keywords.contains(words[a]) == false){
+                    Keywords.add(words[a]);
+                    tokenRow[0] = words[a];   //STORES varname
+                    tokenRow[1] = words[a];   //store vartype
+                    TknTable.addRow(tokenRow);
+            }
+            //If word read is not a keyword, is a variable, and is not a 'preTokens' (keywords with error)
+            else if(Keywords.contains(words[a]) == false && isVar(words[a]) && ERR_LEX.contains(words[a]) == false){
+                if(IDENT.contains(words[a]) == false){
+                    if(words[a-1].equals("STR")){
+                        VarAndVal.put(words[a], "");
+                        varRow[0] = words[a];
+                        varRow[1] = VarAndVal.get(words[a]);
+                        VarValTable.addRow(varRow);
+                    }
+                    IDENT.add(words[a]);
+                    tokenRow[0] = words[a];
+                    tokenRow[1] = "IDENT";
+                    TknTable.addRow(tokenRow);
+                }
+            }
+            //IF WORD READ IS INTEGER
+            else if(isInteger(words[a])==true){
+                //INT(a-3) IDENT(a-2) IS(a-1) INT_LIT(a)
+                if(IDENT.contains(words[a-2]) && words[a-3].equals("INT")){
+                    VarAndVal.put(words[a-2], words[a]);
+                    varRow[0] = words[a-2];
+                    varRow[1] = VarAndVal.get(words[a-2]);
+                    VarValTable.addRow(varRow);
+                }
+                tokenRow[0] = words[a];
+                tokenRow[1] = "INT_LIT";
+                TknTable.addRow(tokenRow);
+            } 
+            else if (ERR_LEX.contains(words[a])){
+                tokenRow[0] = words[a];
+                tokenRow[1] = "ERR_LEX";
+                TknTable.addRow(tokenRow);
+            }
+            if(words.length != b){
+                b++;
+            } else break;   
         }
+        
+        
     }
     
-    
     //FUNCTIONS BELOW DEALS WITH CODE EXECUTION
-     
     static boolean checkSpecialChar(char ch) {
         char[] specialCh = {'!','@',']','#','$','%','^','&','*','-','.'}; 
         
@@ -707,10 +686,13 @@ class IOL_GUI extends javax.swing.JFrame{
     private javax.swing.JTabbedPane TabbedPane;
     private javax.swing.JTable TokenTable;
     private javax.swing.JMenuItem TokenizedMenuItem;
+    private javax.swing.JTabbedPane TokenizerTabbedPane;
+    private javax.swing.JTable VariableTable;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private static javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     // End of variables declaration//GEN-END:variables
 }
