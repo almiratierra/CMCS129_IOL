@@ -27,13 +27,14 @@ public class ErrorChecker {
         if(words[0].equals("IOL")){
             scannedWords.add(words[0]);
             for(int i = 1; i < words.length; i++){
+                scannedWords.add(words[i]);
                 if(words[i].equals("LOI") && i != words.length-1){
                     ConsoleTxtArea.append("Error! LOI not end of code.\n");
                 }
                 else if(i == words.length-1 && !words[i].equals("LOI") && scannedWords.contains("LOI") == true){
                     ConsoleTxtArea.append("Error! End of code not found.\n");
                 }
-                scannedWords.add(words[i]);
+                
             }
         }
         else{

@@ -6,6 +6,7 @@
 package IOL_ProjectPackage;
 
 
+import java.awt.BorderLayout;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,6 +26,9 @@ import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.io.BufferedWriter;
+import java.lang.reflect.Array;
 import java.util.Arrays;  
 import java.util.List;  
 import java.util.ArrayList;
@@ -32,6 +36,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFrame;
 import javax.swing.JTextArea;
 /**
  *
@@ -41,13 +48,16 @@ import javax.swing.JTextArea;
 class IOL_GUI extends javax.swing.JFrame{
     private final JFileChooser openFile;
     private static JScrollPane CodeEditorScrollPane = new JScrollPane();
-    private String filePath = "";
-    private int tabInd; 
+    private static String filePath = "";
+    private static int tabInd; 
+    int lineNumber;
     
-    ArrayList<String> AllLexemes = new ArrayList<>(Arrays.asList("IOL", "LOI", "NEWLN", "IS", "INTO", "BEG", "PRINT", "INT", "STR", "ADD","SUB" ,"MULT", "MOD", "DIV"));
-    String[] OPR = new String[]{"MOD","DIV", "MULT","SUB", "ADD",}; //arith operation
-    List<String> var = new ArrayList<>(); //list of variables names
-    List<String> AllOPR = Arrays.asList(OPR);
+    static ArrayList<String> AllLexemes = new ArrayList<>(Arrays.asList("IOL", "LOI", "NEWLN", "IS", "INTO", "BEG", "PRINT", "INT", "STR", "ADD","SUB" ,"MULT", "MOD", "DIV"));
+    static ArrayList<String> ListOfTokens = new ArrayList<>();
+    
+    static List<String> AllOPR = new ArrayList<>(Arrays.asList("MOD","DIV", "MULT","SUB", "ADD")); //arith operation
+    static List<String> ERR_LEX = new ArrayList<>();
+    
     
     public IOL_GUI() {
         initComponents();
@@ -68,7 +78,7 @@ class IOL_GUI extends javax.swing.JFrame{
         jMenuItem1 = new javax.swing.JMenuItem();
         jScrollPane2 = new javax.swing.JScrollPane();
         ConsoleTxtArea = new javax.swing.JTextArea();
-        TabbedPane = new javax.swing.JTabbedPane();
+        EditorTabbedPane = new javax.swing.JTabbedPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         CodeEditorTxtArea = new javax.swing.JTextArea();
         TokenizerTabbedPane = new javax.swing.JTabbedPane();
@@ -100,7 +110,7 @@ class IOL_GUI extends javax.swing.JFrame{
         CodeEditorTxtArea.setRows(5);
         jScrollPane1.setViewportView(CodeEditorTxtArea);
 
-        TabbedPane.addTab("Untitled Tab", jScrollPane1);
+        EditorTabbedPane.addTab("Untitled Tab", jScrollPane1);
 
         VariableTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -237,7 +247,7 @@ class IOL_GUI extends javax.swing.JFrame{
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 421, Short.MAX_VALUE)
-                    .addComponent(TabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 421, Short.MAX_VALUE))
+                    .addComponent(EditorTabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 421, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(TokenizerTabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE)
                 .addContainerGap())
@@ -248,7 +258,7 @@ class IOL_GUI extends javax.swing.JFrame{
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(TabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
+                        .addComponent(EditorTabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE)
                         .addGap(12, 12, 12))
@@ -257,66 +267,11 @@ class IOL_GUI extends javax.swing.JFrame{
                         .addContainerGap())))
         );
 
-        TabbedPane.getAccessibleContext().setAccessibleName("Untitled Tab");
+        EditorTabbedPane.getAccessibleContext().setAccessibleName("Untitled Tab");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    public JTextArea getTextArea(){
-        return CodeEditorTxtArea;
-    }
-    
-    public JTabbedPane createNewTab(String tabName){
-        JTextArea NewTabTxtArea = new JTextArea();
-        JScrollPane NewScrollPane = new JScrollPane(NewTabTxtArea);
-        
-        TabbedPane.addTab(tabName, NewScrollPane);
-        CodeEditorTxtArea = NewTabTxtArea;
-        
-        return TabbedPane;
-    }
-    
-    public void getTextFromEditor(){
-        CodeEditorScrollPane = (JScrollPane)TabbedPane.getSelectedComponent();
-        JViewport jview = (JViewport)CodeEditorScrollPane.getComponent(0);
-        CodeEditorTxtArea = (JTextArea)jview.getComponent(0);
-    }
-    
-    public void savingFile(){
-        String fileName;
-        String editorTxt;
-        tabInd = TabbedPane.getSelectedIndex();
-        getTextFromEditor();
-        
-        JFileChooser sf = new JFileChooser();
-        sf.setCurrentDirectory(new File(filePath));
-        
-        sf.setSelectedFile(new File("Untitled.iol"));
-        sf.showSaveDialog(this);
-//        File fl = new File(sf.getSelectedFile()+".iol");
-        File f = new File(sf.getSelectedFile().toString());
-        
-        //OVERWRITES A FILE IF IT ALREADY EXISTS
-        if(f.exists()){
-            int overwrite = JOptionPane.showConfirmDialog(null, "File already exists."
-                    + "Overwrite file?", "Confirm", 
-                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-            if(overwrite != JOptionPane.YES_OPTION){
-                return;
-            }
-        }
-
-        try{
-            //gets tab title
-            FileWriter fw = new FileWriter(f);
-            editorTxt = CodeEditorTxtArea.getText();
-            fw.write(editorTxt);
-            fileName = f.getName();
-            TabbedPane.setTitleAt(tabInd, fileName);
-            fw.close();
-        }catch(IOException e){}        
-    }
-        
     private void FileMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FileMenuActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_FileMenuActionPerformed
@@ -339,8 +294,8 @@ class IOL_GUI extends javax.swing.JFrame{
                         filePath = f.getCanonicalPath();
                         createNewTab(fName);
                         BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
-                        
                         CodeEditorTxtArea.read(in, evt);
+                        LineNumberSetter(CodeEditorTxtArea, jScrollPane1);
                     } catch(IOException ex){}
                 }else{
                     JOptionPane.showMessageDialog(null, "File type not compatible.");
@@ -367,31 +322,49 @@ class IOL_GUI extends javax.swing.JFrame{
 
     private void CloseTabMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CloseTabMenuItemActionPerformed
         // TODO add your handling code here:
-        Component selectedTab = TabbedPane.getSelectedComponent();
+        Component selectedTab = EditorTabbedPane.getSelectedComponent();
         if(selectedTab != null){
-            TabbedPane.remove(selectedTab);
+            EditorTabbedPane.remove(selectedTab);
         }
     }//GEN-LAST:event_CloseTabMenuItemActionPerformed
 
     private void CompileMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CompileMenuItemActionPerformed
         // TODO add your handling code here:
-        //Compiles source code in text editor
-        //executes lexical analysis (output file containing the stream of tokens, display of errors founf
-        //syntax analysis and analysis of static semantics: display of errors found
-        //TRY TO PUT THIS IN A METHOD
+        /*
+            This method checks if IOL code has syntax/semantic/lexical errors. If errors are found, it displays
+            error messages on the console and the program should not be executed. It will also find and classify
+            the lexemes and the variables used which will be displayed on the tables.
+        */
+        
+        //sentence line for line number errors
+        //if error at line 1, boolean list/array na mag store ug true/false values for the lines
+        //(0, 0 0 0 1, 1 0 0 0, 0 0)  dapat once lang mag store how about multiple words? basig ma overwite
+        //if else statement na if element at current line has 1, do not overwrite?
+        
         String[] readLines = readTextArea();
+        if(readLines == null){
+            JOptionPane.showMessageDialog(null, "Nothing to compile.");
+            return;
+        }
+        
         List<String> list = new ArrayList<>();
-//        Collections.addAll(list, readLines);
+        List<Boolean> errorFound = new ArrayList<>(); //used to store if errors are found in a line
+        ArrayList<String> Tokens = new ArrayList<>();
         Stack<String> stacks = new Stack<>();
+        
+//        Collections.addAll(list, readLines);
         
         String delim = " ";
         String str = String.join(delim, readLines);
         
         String words[] = str.split("\\s+");
         int arrLength = words.length;
-        list = ErrorChecker.stringArr(words, ConsoleTxtArea);
-        
+//        list = ErrorChecker.stringArr(words, ConsoleTxtArea);
         List<String> ERR_LEX = new ArrayList<>();
+        
+        Tokenizer(words);
+        TknToFile(Tokens);
+        
 //        int ctr = 1;
 //        while(ctr < list.size()-1){
 //             
@@ -400,14 +373,21 @@ class IOL_GUI extends javax.swing.JFrame{
 //           ERR_LEX = ErrorChecker.getTokens(newStr, var, AllOPR, ConsoleTxtArea);
 //           ctr++;
 //        }
-        tokenizer(words, ERR_LEX);
+        
+//        System.out.println(Tokens);
     }//GEN-LAST:event_CompileMenuItemActionPerformed
  
     private void ExecuteMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ExecuteMenuItemActionPerformed
         // TODO add your handling code here:
-        //Executes compiled source code in editor area
+        //Executes compiled source code in the editor code. Will only execute if no errors are found.
+        
         ConsoleTxtArea.setText("");
         String[] sentenceLines = readTextArea();
+        if(sentenceLines == null){
+            JOptionPane.showMessageDialog(null, "Nothing to execute.");
+            return;
+        }
+       
         String output;
         
         //Arrays, Lists, Arraylists, Stack, Hashmaps DECLARATIONS START--------------------------------
@@ -418,6 +398,7 @@ class IOL_GUI extends javax.swing.JFrame{
         ArrayList<String> sval = new ArrayList<>();//list of string assigned values
         ArrayList<String> svar = new ArrayList<>(); //list of string variables
         ArrayList<String> ivar = new ArrayList<>(); //list of integer variables
+        List<String> VarFound = new ArrayList<>(); //list of variables names
         
         Stack<String> ArithOPR = new Stack<>();
         
@@ -434,6 +415,7 @@ class IOL_GUI extends javax.swing.JFrame{
             inputlines.add(sentenceLines[i]);
             i++;
         }
+        
         //FOR LOOP that reads every word in every line (element) in inputLines arraylist
         for(int a=0; a < inputlines.size(); a++){
             //save per word in a line
@@ -443,9 +425,8 @@ class IOL_GUI extends javax.swing.JFrame{
             perword.addAll(Arrays.asList(woo));
             PWord.add(perword);//Main arraylist
         }
-        
         //FOR LOOP - reads every line and read every word inside line
-        for(int a=0; a < inputlines.size(); a++){
+        for(int a = 0; a < inputlines.size(); a++){
             int b = 0;
             
             //WHILE LOOP for every word read
@@ -453,16 +434,13 @@ class IOL_GUI extends javax.swing.JFrame{
                 //DEFINING VARIABLES
                 //INT/STR read
                 ArrayList<String> readWord = PWord.get(a);
-                
                 if(!AllDT.contains(readWord.get(b))){
                     //Enters function that reads words that are: NEWLN, IS, INTO, BEG, PRINT
-                    output = ExecuteFunctions.ProgramOperations(ArithOPR, AllOPR, readWord, b, var, dtsvarval, sval, svarval, val, varval);
+                    output = ExecuteFunctions.ProgramOperations(ArithOPR, AllOPR, readWord, b, VarFound, dtsvarval, sval, svarval, val, varval);
                     ConsoleTxtArea.append(output);
                 }
-                else{
-                    //Checks variable datatypes
-                    ExecuteFunctions.CheckDataType(readWord, b, var, dtsvarval, sval, svar, svarval, val, ivar, varval);
-                }
+                //Checks variable datatypes
+                else ExecuteFunctions.CheckDataType(readWord, b, VarFound, dtsvarval, sval, svar, svarval, val, ivar, varval);
                 
                 //---DO NOT REMOVE---
                 if(readWord.size()!=b){
@@ -470,12 +448,50 @@ class IOL_GUI extends javax.swing.JFrame{
                 } else break;   
             }
         }
-        
+        System.out.println(VarFound);
+        ConsoleTxtArea.append("\n\nProgram terminated successfully...");
     }//GEN-LAST:event_ExecuteMenuItemActionPerformed
 
     private void TokenizedMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TokenizedMenuItemActionPerformed
         // TODO add your handling code here:
+        //CODE SHOULD COMPILE FIRST BEFORE TOKENIZED CAN BE DONE
         
+        tabInd = EditorTabbedPane.getSelectedIndex();
+        String[] readLines = readTextArea();
+//        ArrayList<String> Tokens = tokenizer(readLines, AllOPR);
+        
+        JTextArea TokenTxtArea = (JTextArea)(((JScrollPane) EditorTabbedPane.getComponent(tabInd)).getViewport()).getComponent(0);
+        JFrame TknzdCode = new JFrame("Show Tokenized Code");
+        TknzdCode.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        TknzdCode.setPreferredSize(new Dimension(800, 600));
+        TknzdCode.pack();
+        TknzdCode.setLocationRelativeTo(null);
+        TknzdCode.setVisible(true);
+        
+        TokenTxtArea = new JTextArea(5, 10);
+        TokenTxtArea.setEditable(false);
+        TokenTxtArea.setSize(700, 500);
+        TokenTxtArea.setWrapStyleWord(true);
+        TokenTxtArea.setText("");
+        
+        JScrollPane scrollPane = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+        JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        TknzdCode.add(scrollPane, BorderLayout.CENTER);
+        scrollPane.getViewport().add(TokenTxtArea);
+        scrollPane.setDoubleBuffered(true);
+        
+        for (String readLine : readLines) {
+            String[] word = readLine.split("\\s+");
+            
+            for (String wordX : word) {
+                if(wordX.isEmpty()) TokenTxtArea.append("\t");
+                else if(ListOfTokens.contains(wordX)) TokenTxtArea.append(wordX + " ");
+                else if(isVar(wordX)) TokenTxtArea.append("IDENT ");
+                else if(isInteger(wordX)) TokenTxtArea.append("INT_LIT ");
+                else TokenTxtArea.append("ERR_LEX ");
+            }
+            TokenTxtArea.append("\n");
+        }
     }//GEN-LAST:event_TokenizedMenuItemActionPerformed
     
     
@@ -514,19 +530,74 @@ class IOL_GUI extends javax.swing.JFrame{
         
     }
     
-    public String[] readTextArea(){
-        //FUNCTION READS LINES IN TEXT AREA
-        String[] sentenceLines = null;  
+    //Start of GUI menu actions methods here ------------------------------------------
+    public JTextArea getTextArea(){
+        return CodeEditorTxtArea;
+    }
+    
+    public JTabbedPane createNewTab(String tabName){
+        JTextArea NewTabTxtArea = new JTextArea();
+        JScrollPane NewScrollPane = new JScrollPane(NewTabTxtArea);
         
-        //CHECKS IF THERE IS TEXT IN CODEEDITOR TO COMPILE
-        JTextArea ExecTextArea = (JTextArea)(((JScrollPane)TabbedPane.getComponent(tabInd)).getViewport()).getComponent(0);
-        if(ExecTextArea.getText().trim().isEmpty() == false){
-            sentenceLines = CodeEditorTxtArea.getText().split("\\n");
-        }
-        else{
-            JOptionPane.showMessageDialog(null, "Nothing to Compile.");
-        }
-        return sentenceLines;
+        EditorTabbedPane.addTab(tabName, NewScrollPane);
+        CodeEditorTxtArea = NewTabTxtArea;
+        jScrollPane1 = NewScrollPane;
+        LineNumberSetter(CodeEditorTxtArea, jScrollPane1);
+        return EditorTabbedPane;
+    }
+    
+    public void getTextFromEditor(){
+        CodeEditorScrollPane = (JScrollPane)EditorTabbedPane.getSelectedComponent();
+        JViewport jview = (JViewport)CodeEditorScrollPane.getComponent(0);
+        CodeEditorTxtArea = (JTextArea)jview.getComponent(0);
+    }
+    
+    public void savingFile(){
+        String fileName;
+        String editorTxt;
+        tabInd = EditorTabbedPane.getSelectedIndex();
+        getTextFromEditor();
+        
+        JFileChooser sf = new JFileChooser();
+        sf.setCurrentDirectory(new File(filePath));
+        
+        sf.setSelectedFile(new File("Untitled.iol"));
+        sf.showSaveDialog(this);
+        File f = new File(sf.getSelectedFile().toString());
+        
+        //OVERWRITES A FILE IF IT ALREADY EXISTS
+        try{
+            File fi = sf.getSelectedFile();
+            if(fi.exists()){
+                int overwrite = JOptionPane.showConfirmDialog(null, "File already exists."
+                        + " Overwrite file?", "Confirm", 
+                        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                if(overwrite == JOptionPane.YES_OPTION){
+                    try{
+                    //gets tab title
+                    FileWriter fw = new FileWriter(f);
+                    editorTxt = CodeEditorTxtArea.getText();
+                    fw.write(editorTxt);
+                    fileName = f.getName();
+                    EditorTabbedPane.setTitleAt(tabInd, fileName);
+                    fw.close();
+                    JOptionPane.showMessageDialog(null, "File successfully saved!");
+                }catch(IOException e){}    
+                }
+            }
+            else{
+                try{
+                    //gets tab title
+                    FileWriter fw = new FileWriter(f);
+                    editorTxt = CodeEditorTxtArea.getText();
+                    fw.write(editorTxt);
+                    fileName = f.getName();
+                    EditorTabbedPane.setTitleAt(tabInd, fileName);
+                    fw.close();
+                    JOptionPane.showMessageDialog(null, "File successfully saved!");
+                }catch(IOException e){}     
+            }
+        }catch (Exception e){}
     }
     
     public static void LineNumberSetter(JTextArea SetLineNumber, JScrollPane SetScrollPane){
@@ -537,6 +608,7 @@ class IOL_GUI extends javax.swing.JFrame{
             @Override
             public void insertUpdate(DocumentEvent documentEvent){
                 lineNumberingTextArea.updateLineNumbers();
+                
             }
 
             @Override
@@ -550,9 +622,52 @@ class IOL_GUI extends javax.swing.JFrame{
             }
         });
     }
+    //End of GUI menu actions methods here ------------------------------------------
     
-    public void tokenizer(String[] words, List<String> ERR_LEX){
+    
+    //Start of compile and execute methods here -------------------------------------
+    public String[] readTextArea(){
+        //FUNCTION READS LINES IN TEXT AREA
+        String[] sentenceLines = null;  
+        tabInd = EditorTabbedPane.getSelectedIndex();
+        
+        //CHECKS IF THERE IS TEXT IN CODEEDITOR TO COMPILE
+        JTextArea ExecTextArea = (JTextArea)(((JScrollPane)EditorTabbedPane.getComponent(tabInd)).getViewport()).getComponent(0);
+        if(ExecTextArea.getText().trim().isEmpty() == false){
+            sentenceLines = CodeEditorTxtArea.getText().split("\\n");
+        }
+        return sentenceLines;
+    }
+    
+    public void TknToFile(ArrayList<String> Tokens){
+        tabInd = EditorTabbedPane.getSelectedIndex();
+        String filename = EditorTabbedPane.getTitleAt(tabInd);
+        
+        if(filename.equals("Untitled Tab")){
+            JOptionPane.showMessageDialog(null, "Save file first.");
+            
+        }
+        else{
+            File file = new File(filePath.replace(".iol", ".tkn"));
+
+            try {
+                FileWriter w = new FileWriter(file);
+
+                for(int i = 0; i < Tokens.size(); i++){
+                    w.append(Tokens.get(i) + "\n");
+                }
+                w.close();
+                JOptionPane.showMessageDialog(null, filename.replace(".iol", ".tkn") + " File created");
+            } catch (IOException ex) {
+                Logger.getLogger(IOL_GUI.class.getName()).log(Level.SEVERE, null, ex);
+            } 
+        }
+    }
+    
+    public static void Tokenizer(String[] words){
         //loops through sentenclines
+        ListOfTokens.clear(); 
+        
         ArrayList<String> Keywords = new ArrayList<>(); 
         ArrayList<String> IDENT = new ArrayList<>();
         
@@ -573,15 +688,20 @@ class IOL_GUI extends javax.swing.JFrame{
                 //do nothing
             }
             //IF WORD READ IS A KEYWORD
-            else if(AllLexemes.contains(words[a]) && Keywords.contains(words[a]) == false){
+            else if(AllLexemes.contains(words[a])){
+                if(Keywords.contains(words[a]) == false){
                     Keywords.add(words[a]);
                     tokenRow[0] = words[a];   //STORES varname
                     tokenRow[1] = words[a];   //store vartype
                     TknTable.addRow(tokenRow);
+                }
+                ListOfTokens.add(words[a]);
             }
             //If word read is not a keyword, is a variable, and is not a 'preTokens' (keywords with error)
             else if(Keywords.contains(words[a]) == false && isVar(words[a]) && ERR_LEX.contains(words[a]) == false){
+                //if word is variable and has not yet been stored in IDENT (avoids multiple entries)
                 if(IDENT.contains(words[a]) == false){
+                    //checks if current word was an initialized string, prints name and value in VarVal Table
                     if(words[a-1].equals("STR")){
                         VarAndVal.put(words[a], "");
                         varRow[0] = words[a];
@@ -592,7 +712,10 @@ class IOL_GUI extends javax.swing.JFrame{
                     tokenRow[0] = words[a];
                     tokenRow[1] = "IDENT";
                     TknTable.addRow(tokenRow);
+                    ListOfTokens.add("IDENT");
                 }
+                //if IDENT has been read, code will store in arraylist for recording 
+                else ListOfTokens.add("IDENT");
             }
             //IF WORD READ IS INTEGER
             else if(isInteger(words[a])==true){
@@ -606,18 +729,19 @@ class IOL_GUI extends javax.swing.JFrame{
                 tokenRow[0] = words[a];
                 tokenRow[1] = "INT_LIT";
                 TknTable.addRow(tokenRow);
-            } 
-            else if (ERR_LEX.contains(words[a])){
+                ListOfTokens.add("INT_LIT");
+            }
+            //IF WORD IS NOT A KEYWORD, IDENT, OR INT_LIT
+            else if (ERR_LEX.contains(words[a]) ){
                 tokenRow[0] = words[a];
                 tokenRow[1] = "ERR_LEX";
                 TknTable.addRow(tokenRow);
+                ListOfTokens.add("ERR_LEX");
             }
             if(words.length != b){
                 b++;
             } else break;   
         }
-        
-        
     }
     
     //FUNCTIONS BELOW DEALS WITH CODE EXECUTION
@@ -669,13 +793,14 @@ class IOL_GUI extends javax.swing.JFrame{
         else return false;
         return false;
     }
-    
+    //End of compile and execute methods here -------------------------------------
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem CloseTabMenuItem;
     private static javax.swing.JTextArea CodeEditorTxtArea;
     private javax.swing.JMenuItem CompileMenuItem;
     private static javax.swing.JTextArea ConsoleTxtArea;
+    private javax.swing.JTabbedPane EditorTabbedPane;
     private javax.swing.JMenuItem ExecuteMenuItem;
     private javax.swing.JMenu FileMenu;
     private javax.swing.JMenuItem NewMenuItem;
@@ -683,11 +808,10 @@ class IOL_GUI extends javax.swing.JFrame{
     private javax.swing.JMenu RuntMenu;
     private javax.swing.JMenuItem SaveAsMenuItem;
     private javax.swing.JMenuItem SaveMenuItem;
-    private javax.swing.JTabbedPane TabbedPane;
-    private javax.swing.JTable TokenTable;
+    private static javax.swing.JTable TokenTable;
     private javax.swing.JMenuItem TokenizedMenuItem;
     private javax.swing.JTabbedPane TokenizerTabbedPane;
-    private javax.swing.JTable VariableTable;
+    private static javax.swing.JTable VariableTable;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private static javax.swing.JScrollPane jScrollPane1;

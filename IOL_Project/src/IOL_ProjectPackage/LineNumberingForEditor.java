@@ -38,4 +38,5 @@ public class LineNumberingForEditor extends JTextArea {
         }
         return lineNumbersTextBuilder.toString();
     }
+    
 }

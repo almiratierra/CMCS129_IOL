@@ -28,7 +28,7 @@ public class ExecuteFunctions {
         /*
             This function checks if the word scanned is INT or STR
             b = wordIndex   readWord = PWord.get(a)
-            var          = var_names    sval    = str_Val       val    = int_Val    
+            VarFound          = var_names    sval    = str_Val       val    = int_Val    
             var_dataType = dtsvarval    svar    = str_Var       ivar   = int_Var
                                         svarval = str_VarVal    varval = int_VarVal
         */
