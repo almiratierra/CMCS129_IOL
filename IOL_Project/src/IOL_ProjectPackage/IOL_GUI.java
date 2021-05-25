@@ -52,6 +52,9 @@ class IOL_GUI extends javax.swing.JFrame{
     private static int tabInd; 
     int lineNumber;
     
+    boolean errFlag = false; 
+    boolean compileFlag = false;
+    
     static ArrayList<String> AllLexemes = new ArrayList<>(Arrays.asList("IOL", "LOI", "NEWLN", "IS", "INTO", "BEG", "PRINT", "INT", "STR", "ADD","SUB" ,"MULT", "MOD", "DIV"));
     static ArrayList<String> ListOfTokens = new ArrayList<>();
     
@@ -327,7 +330,7 @@ class IOL_GUI extends javax.swing.JFrame{
             EditorTabbedPane.remove(selectedTab);
         }
     }//GEN-LAST:event_CloseTabMenuItemActionPerformed
-
+    
     private void CompileMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CompileMenuItemActionPerformed
         // TODO add your handling code here:
         /*
@@ -335,12 +338,6 @@ class IOL_GUI extends javax.swing.JFrame{
             error messages on the console and the program should not be executed. It will also find and classify
             the lexemes and the variables used which will be displayed on the tables.
         */
-        
-        //sentence line for line number errors
-        //if error at line 1, boolean list/array na mag store ug true/false values for the lines
-        //(0, 0 0 0 1, 1 0 0 0, 0 0)  dapat once lang mag store how about multiple words? basig ma overwite
-        //if else statement na if element at current line has 1, do not overwrite?
-        
         String[] readLines = readTextArea();
         if(readLines == null){
             JOptionPane.showMessageDialog(null, "Nothing to compile.");
@@ -348,19 +345,17 @@ class IOL_GUI extends javax.swing.JFrame{
         }
         
         List<String> list = new ArrayList<>();
-        List<Boolean> errorFound = new ArrayList<>(); //used to store if errors are found in a line
+//        List<Boolean> errorFound = new ArrayList<>(); //used to store if errors are found in a line
         ArrayList<String> Tokens = new ArrayList<>();
         Stack<String> stacks = new Stack<>();
-        
-//        Collections.addAll(list, readLines);
+        List<String> ERR_LEX = new ArrayList<>();
         
         String delim = " ";
         String str = String.join(delim, readLines);
         
         String words[] = str.split("\\s+");
-        int arrLength = words.length;
 //        list = ErrorChecker.stringArr(words, ConsoleTxtArea);
-        List<String> ERR_LEX = new ArrayList<>();
+        
         
         Tokenizer(words);
         TknToFile(Tokens);
@@ -375,11 +370,21 @@ class IOL_GUI extends javax.swing.JFrame{
 //        }
         
 //        System.out.println(Tokens);
+        compileFlag = true;
     }//GEN-LAST:event_CompileMenuItemActionPerformed
- 
+    
+    
     private void ExecuteMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ExecuteMenuItemActionPerformed
         // TODO add your handling code here:
         //Executes compiled source code in the editor code. Will only execute if no errors are found.
+        if(errFlag == true){
+            JOptionPane.showMessageDialog(null, "Errors found! Cannot execute file.");
+            return;
+        }
+        if(compileFlag == false){
+            JOptionPane.showMessageDialog(null, "Cannot execute, compile code first.");
+            return;
+        }
         
         ConsoleTxtArea.setText("");
         String[] sentenceLines = readTextArea();
@@ -456,9 +461,13 @@ class IOL_GUI extends javax.swing.JFrame{
         // TODO add your handling code here:
         //CODE SHOULD COMPILE FIRST BEFORE TOKENIZED CAN BE DONE
         
+        if(compileFlag == false){
+            JOptionPane.showMessageDialog(null, "Compile file first.");
+            return;
+        }
+        
         tabInd = EditorTabbedPane.getSelectedIndex();
         String[] readLines = readTextArea();
-//        ArrayList<String> Tokens = tokenizer(readLines, AllOPR);
         
         JTextArea TokenTxtArea = (JTextArea)(((JScrollPane) EditorTabbedPane.getComponent(tabInd)).getViewport()).getComponent(0);
         JFrame TknzdCode = new JFrame("Show Tokenized Code");
@@ -562,42 +571,50 @@ class IOL_GUI extends javax.swing.JFrame{
         sf.setCurrentDirectory(new File(filePath));
         
         sf.setSelectedFile(new File("Untitled.iol"));
-        sf.showSaveDialog(this);
+        
+        int r = sf.showSaveDialog(this);
         File f = new File(sf.getSelectedFile().toString());
         
         //OVERWRITES A FILE IF IT ALREADY EXISTS
-        try{
-            File fi = sf.getSelectedFile();
-            if(fi.exists()){
-                int overwrite = JOptionPane.showConfirmDialog(null, "File already exists."
-                        + " Overwrite file?", "Confirm", 
-                        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-                if(overwrite == JOptionPane.YES_OPTION){
-                    try{
-                    //gets tab title
-                    FileWriter fw = new FileWriter(f);
-                    editorTxt = CodeEditorTxtArea.getText();
-                    fw.write(editorTxt);
-                    fileName = f.getName();
-                    EditorTabbedPane.setTitleAt(tabInd, fileName);
-                    fw.close();
-                    JOptionPane.showMessageDialog(null, "File successfully saved!");
-                }catch(IOException e){}    
-                }
-            }
-            else{
+        switch(r){
+            case JFileChooser.CANCEL_OPTION:
+                break;
+                    
+            case JFileChooser.APPROVE_OPTION:
                 try{
-                    //gets tab title
-                    FileWriter fw = new FileWriter(f);
-                    editorTxt = CodeEditorTxtArea.getText();
-                    fw.write(editorTxt);
-                    fileName = f.getName();
-                    EditorTabbedPane.setTitleAt(tabInd, fileName);
-                    fw.close();
-                    JOptionPane.showMessageDialog(null, "File successfully saved!");
-                }catch(IOException e){}     
-            }
-        }catch (Exception e){}
+                    File fi = sf.getSelectedFile();
+                    if(fi.exists()){
+                        int overwrite = JOptionPane.showConfirmDialog(null, "File already exists."
+                                + " Overwrite file?", "Confirm", 
+                                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                        if(overwrite == JOptionPane.YES_OPTION){
+                            try{
+                            //gets tab title
+                            FileWriter fw = new FileWriter(f);
+                            editorTxt = CodeEditorTxtArea.getText();
+                            fw.write(editorTxt);
+                            fileName = f.getName();
+                            EditorTabbedPane.setTitleAt(tabInd, fileName);
+                            fw.close();
+                            JOptionPane.showMessageDialog(null, "File successfully saved!");
+                        }catch(IOException e){}    
+                        }
+                    }
+                    else{
+                        try{
+                            //gets tab title
+                            FileWriter fw = new FileWriter(f);
+                            editorTxt = CodeEditorTxtArea.getText();
+                            fw.write(editorTxt);
+                            fileName = f.getName();
+                            EditorTabbedPane.setTitleAt(tabInd, fileName);
+                            fw.close();
+                            JOptionPane.showMessageDialog(null, "File successfully saved!");
+                        }catch(IOException e){}     
+                    }
+                }catch (Exception e){}
+            break;
+        }
     }
     
     public static void LineNumberSetter(JTextArea SetLineNumber, JScrollPane SetScrollPane){
