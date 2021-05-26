@@ -158,33 +158,19 @@ public class ExecuteFunctions {
     public static String isOPR(ArrayList<String> readWord, int wordIndex, HashMap<String,Integer> int_VarVal, List<String> AllOPR, Stack<String> ArithOPR){
     //this function allows a statement to do its arithmetic operations
     //INSERT POSTFIX TO INFIX FOR ARITH
-        while(AllOPR.contains(readWord.get(wordIndex))){
-            ArithOPR.push(readWord.get(wordIndex));
-            wordIndex++;
+       while(b!=PWord.get(a).size()-1){ 
+       //if VAL 
+       if(!ArithOPR.contains(readWord.get(wordIndex)))&&isVar(readWord.get(wordIndex))){ 
+        String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
+               ArithOPR.push(value);
         }
-
-        //if IDENT
-        if(isVar(readWord.get(wordIndex))){
-            String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
-            ArithOPR.push(value);
-        }
-
-        //if VAL
-        if(isInteger(readWord.get(wordIndex))){
-            ArithOPR.push(readWord.get(wordIndex));
-        }
-        wordIndex++;
-
-        //if IDENT
-        if(isVar(readWord.get(wordIndex))){
-            String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
-            ArithOPR.push(value);
-        }
-
-        //if VAL
-        if(isInteger(readWord.get(wordIndex))){
-            ArithOPR.push(readWord.get(wordIndex));
-        }  
+        //IF OP or VAL
+        else{
+                ArithOPR.push(readWord.get(wordIndex)));
+         }
+        wordIndex++;   
+        ArithOPR.push(readWord.get(wordIndex)));   
+        
 
         //results from arith
         String arithVal = ArithOPR.toString();
@@ -272,51 +258,65 @@ public class ExecuteFunctions {
             return false;
     }
     
-    public static Integer evaluatePrefix(String string){
+    public static Integer evaluatePrefix(String string)
+    {
         //change Word operations to oper
-        String exprsn = string.replaceAll("MULT","*").replaceAll("DIV","/").replaceAll("ADD","+").replaceAll("SUB","-").replaceAll("MOD","%").replaceAll("\\[", "").replaceAll("]", "").replaceAll(",", "").replaceAll(" ", "");
-        Stack<Double> Stack = new Stack<>();
         
-        for (int j = exprsn.length() - 1; j >= 0; j--){
-            // Push operand to Stack
-            // To convert exprsn[j] to digit subtract
-            // '0' from exprsn[j].
-            if (isOperand(exprsn.charAt(j))){
-                Stack.push((double)(exprsn.charAt(j) - 48));
+        
+        
+         String p,n="";StringBuffer b;int i,op1,op2;char c;Stack<Integer> s=new Stack<Integer>();
+p = string.replaceAll("MULT","*").replaceAll("DIV","/").replaceAll("ADD","+").replaceAll("SUB","-").replaceAll("MOD","%").replaceAll("\\[", "").replaceAll("]", "").replaceAll(",", "").replaceAll(" ", " ");
+       
+ i=p.length()-1;
+ while(i>=0)
+ {
+     c=p.charAt(i);
+     if(c>=48&&c<=57)
+     n=n+c;
+     else if(c==' '&&!n.equals(""))
+     {/*handles both single and multidigit numbers*/
+         b=new StringBuffer(n);b.reverse();n=b.toString();
+         s.push(Integer.parseInt(n));n="";
+        }
+        else 
+        {
+            if(c=='+')
+            {
+                op1=s.pop();
+                op2=s.pop();
+                s.push(op1+op2);
             }
-            else{
-                // Operator encountered
-                // Pop two elements from Stack
-                double o1 = Stack.peek();
-                Stack.pop();
-                
-                double o2 = Stack.peek();
-                Stack.pop();
- 
-                // Use switch case to operate on o1
-                // and o2 and perform o1 O o2.
-                switch (exprsn.charAt(j)) {
-                    case '+':
-                        Stack.push(o1 + o2);
-                        break;
-                    case '-':
-                        Stack.push(o1 - o2);
-                        break;
-                    case '*':
-                        Stack.push(o1 * o2);
-                        break;
-                    case '/':
-                        Stack.push(o1 / o2);
-                        break;
-                    case '%':
-                        Stack.push(o1 % o2);
-                        break;    
-                }
+            else if(c=='-')
+            {
+                op1=s.pop();
+                op2=s.pop();
+                s.push(op1-op2);
+            }
+            else if(c=='*')
+            {
+                op1=s.pop();
+                op2=s.pop();
+                s.push(op1*op2);
+            }
+            else if(c=='%')
+            {
+                op1=s.pop();
+                op2=s.pop();
+                s.push(op1%op2);
+            }
+            else if(c=='/')
+            {
+                op1=s.pop();
+                op2=s.pop();
+                s.push(op1/op2);
             }
         }
-        double answer = Stack.peek();
-        int value = (int)Math.round(answer);
-        return(value);
+        i--;
     }
+    System.out.println("the prefix expression evaluates to "+s.peek());
+    double answer = s.peek();
+        int value = (int)Math.round(answer);
+    return value;
+  }
 
 }
