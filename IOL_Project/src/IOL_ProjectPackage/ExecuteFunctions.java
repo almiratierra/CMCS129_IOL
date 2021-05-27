@@ -120,17 +120,12 @@ public class ExecuteFunctions {
                 }
                 else{
                     if(var_dataType.get("INT") != null && var_dataType.get("INT").contains(readWord.get(wordIndex))){
-//                        System.out.print(int_VarVal.put(readWord.get(wordIndex), int_VarVal.get(readWord.get(wordIndex))));
-//                        ConsoleTxtArea.append(int_VarVal.put(readWord.get(wordIndex), int_VarVal.get(readWord.get(wordIndex))).toString());
                         output = int_VarVal.put(readWord.get(wordIndex), int_VarVal.get(readWord.get(wordIndex))).toString();
                     }
                     if(var_dataType.get("STR") != null && var_dataType.get("STR").contains(readWord.get(wordIndex))){
-//                        System.out.print(str_VarVal.put(readWord.get(wordIndex), str_VarVal.get(readWord.get(wordIndex))));
-//                        ConsoleTxtArea.append(str_VarVal.put(readWord.get(wordIndex), str_VarVal.get(readWord.get(wordIndex))));
                         output = (str_VarVal.put(readWord.get(wordIndex), str_VarVal.get(readWord.get(wordIndex))));
                     }
                 }
-                
                 break;
                 
             case "INTO":
@@ -158,24 +153,52 @@ public class ExecuteFunctions {
     public static String isOPR(ArrayList<String> readWord, int wordIndex, HashMap<String,Integer> int_VarVal, List<String> AllOPR, Stack<String> ArithOPR){
     //this function allows a statement to do its arithmetic operations
     //INSERT POSTFIX TO INFIX FOR ARITH
-       while(b!=PWord.get(a).size()-1){ 
-       //if VAL 
-       if(!ArithOPR.contains(readWord.get(wordIndex)))&&isVar(readWord.get(wordIndex))){ 
-        String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
-               ArithOPR.push(value);
+//        while(wordIndex != readWord.size()-1){
+//            System.out.println("wordInd " + wordIndex);
+//            System.out.println("read " + readWord.size());
+//            //if VAL
+//            if(!ArithOPR.contains(readWord.get(wordIndex)) && isVar(readWord.get(wordIndex))){ 
+//                String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
+//                ArithOPR.push(value);
+//            }
+//            //IF OP or VAL
+//            else ArithOPR.push(readWord.get(wordIndex));
+//            wordIndex++;   
+//            ArithOPR.push(readWord.get(wordIndex));   
+//        }
+        while(AllOPR.contains(readWord.get(wordIndex))){
+            ArithOPR.push(readWord.get(wordIndex));
+            wordIndex++;
         }
-        //IF OP or VAL
-        else{
-                ArithOPR.push(readWord.get(wordIndex)));
-         }
-        wordIndex++;   
-        ArithOPR.push(readWord.get(wordIndex)));   
-        
+
+        //if IDENT
+        if(isVar(readWord.get(wordIndex))){
+            String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
+            ArithOPR.push(value);
+        }
+
+        //if VAL
+        if(isInteger(readWord.get(wordIndex))){
+            ArithOPR.push(readWord.get(wordIndex));
+        }
+        wordIndex++;
+
+        //if IDENT
+        if(isVar(readWord.get(wordIndex))){
+            String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
+            ArithOPR.push(value);
+        }
+
+        //if VAL
+        if(isInteger(readWord.get(wordIndex))){
+            ArithOPR.push(readWord.get(wordIndex));
+        }  
 
         //results from arith
         String arithVal = ArithOPR.toString();
         ArithOPR.clear();    //clears stack for next arith oper
         return (arithVal);
+//    */
     }
         
     static boolean checkSpecialChar(char ch) {
@@ -218,7 +241,7 @@ public class ExecuteFunctions {
                 char c = str.charAt(i);
                 
                 if (c >= '0' || c <= '9'||c >= 'a' || c <= 'z'|| c >= 'A' || c <= 'Z') {
-                    if(i==str.length()-1) return true;
+                    if(i == str.length()-1) return true;
                 }
                 if(checkSpecialChar(c)==true) return false;
              }
@@ -258,65 +281,116 @@ public class ExecuteFunctions {
             return false;
     }
     
-    public static Integer evaluatePrefix(String string)
-    {
+    public static Integer evaluatePrefix(String string){
         //change Word operations to oper
+        //change Word operations to oper
+        String p ,n = "";
+        StringBuffer b;
+        int i, op1, op2;
+        char c;
         
-        
-        
-         String p,n="";StringBuffer b;int i,op1,op2;char c;Stack<Integer> s=new Stack<Integer>();
-p = string.replaceAll("MULT","*").replaceAll("DIV","/").replaceAll("ADD","+").replaceAll("SUB","-").replaceAll("MOD","%").replaceAll("\\[", "").replaceAll("]", "").replaceAll(",", "").replaceAll(" ", " ");
-       
- i=p.length()-1;
- while(i>=0)
- {
-     c=p.charAt(i);
-     if(c>=48&&c<=57)
-     n=n+c;
-     else if(c==' '&&!n.equals(""))
-     {/*handles both single and multidigit numbers*/
-         b=new StringBuffer(n);b.reverse();n=b.toString();
-         s.push(Integer.parseInt(n));n="";
+        Stack<Integer> s=new Stack<Integer>();
+        p = string.replaceAll("MULT","*").replaceAll("DIV","/").replaceAll("ADD","+").replaceAll("SUB","-").replaceAll("MOD","%").replaceAll("\\[", "").replaceAll("]", "").replaceAll(",", "").replaceAll(" ", " ");
+               
+        i=p.length()-1;
+        while(i>=0) {
+            c = p.charAt(i);
+            if(c >= 48 && c <= 57) n = n+c;
+            else if(c == ' ' && !n.equals("")){
+            /*handles both single and multidigit numbers*/
+                b = new StringBuffer(n);b.reverse();n=b.toString();
+                s.push(Integer.parseInt(n));
+                n = "";
+            }
+            else {
+                switch (c) {
+                    case '+':
+                        op1=s.pop();
+                        op2=s.pop();
+                        s.push(op1+op2);
+                        break;
+                    case '-':
+                        op1=s.pop();
+                        op2=s.pop();
+                        s.push(op1-op2);
+                        break;
+                    case '*':
+                        op1=s.pop();
+                        op2=s.pop();
+                        s.push(op1*op2);
+                        break;
+                    case '%':
+                        op1=s.pop();
+                        op2=s.pop();
+                        s.push(op1%op2);
+                        break;
+                    case '/':
+                        op1=s.pop();
+                        op2=s.pop();
+                        s.push(op1/op2);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            i--;
         }
-        else 
-        {
-            if(c=='+')
-            {
-                op1=s.pop();
-                op2=s.pop();
-                s.push(op1+op2);
-            }
-            else if(c=='-')
-            {
-                op1=s.pop();
-                op2=s.pop();
-                s.push(op1-op2);
-            }
-            else if(c=='*')
-            {
-                op1=s.pop();
-                op2=s.pop();
-                s.push(op1*op2);
-            }
-            else if(c=='%')
-            {
-                op1=s.pop();
-                op2=s.pop();
-                s.push(op1%op2);
-            }
-            else if(c=='/')
-            {
-                op1=s.pop();
-                op2=s.pop();
-                s.push(op1/op2);
-            }
-        }
-        i--;
-    }
-    System.out.println("the prefix expression evaluates to "+s.peek());
-    double answer = s.peek();
+        // System.out.println("the prefix expression evaluates to "+s.peek());
+        double answer = s.peek();
         int value = (int)Math.round(answer);
-    return value;
-  }
+        return value;
+        
+        
+        
+        
+        /*
+        String exprsn = string.replaceAll("MULT","*").replaceAll("DIV","/").replaceAll("ADD","+").replaceAll("SUB","-").replaceAll("MOD","%").replaceAll("\\[", "").replaceAll("]", "").replaceAll(",", "").replaceAll(" ", "");
+        Stack<Double> Stack = new Stack<>();
+        System.out.println("exprsn " + exprsn);
+        for (int j = exprsn.length() - 1; j >= 0; j--){
+            // Push operand to Stack
+            // To convert exprsn[j] to digit subtract
+            // '0' from exprsn[j].
+            if (isOperand(exprsn.charAt(j))){
+                Stack.push((double)(exprsn.charAt(j) - 48));
+            }
+            else{
+                // Operator encountered
+                // Pop two elements from Stack
+                double o1 = Stack.peek();
+                Stack.pop();
+                
+                double o2 = Stack.peek();
+                Stack.pop();
+                
+                System.out.println("o1 " + o1);
+                System.out.println("o2 " + o2);
+ 
+                // Use switch case to operate on o1
+                // and o2 and perform o1 O o2.
+                switch (exprsn.charAt(j)) {
+                    case '+':
+                        Stack.push(o1 + o2);
+                        break;
+                    case '-':
+                        Stack.push(o1 - o2);
+                        break;
+                    case '*':
+                        Stack.push(o1 * o2);
+                        break;
+                    case '/':
+                        Stack.push(o1 / o2);
+                        break;
+                    case '%':
+                        Stack.push(o1 % o2);
+                        break;    
+                }
+            }
+        }
+        double answer = Stack.peek();
+        int value = (int)Math.round(answer);
+        return(value);
+    */
+    }
 
 }

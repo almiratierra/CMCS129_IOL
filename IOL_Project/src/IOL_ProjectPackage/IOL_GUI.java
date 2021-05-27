@@ -57,8 +57,12 @@ class IOL_GUI extends javax.swing.JFrame{
     
     static ArrayList<String> AllLexemes = new ArrayList<>(Arrays.asList("IOL", "LOI", "NEWLN", "IS", "INTO", "BEG", "PRINT", "INT", "STR", "ADD","SUB" ,"MULT", "MOD", "DIV"));
     static ArrayList<String> ListOfTokens = new ArrayList<>();
+    static List<String> varNames = new ArrayList<>();
+    static List<String> IntvarNames = new ArrayList<>();
+    static List<String> StrvarNames = new ArrayList<>();
     
-    static List<String> AllOPR = new ArrayList<>(Arrays.asList("MOD","DIV", "MULT","SUB", "ADD")); //arith operation
+    static List<String> AllKeywords = Arrays.asList("INT","STR","IS","INTO","IS","BEG","PRINT","NEWLN");   
+    static List<String> AllOPR = Arrays.asList("MOD","DIV", "MULT","SUB", "ADD"); //arith operation
     static List<String> ERR_LEX = new ArrayList<>();
     
     
@@ -338,45 +342,57 @@ class IOL_GUI extends javax.swing.JFrame{
             error messages on the console and the program should not be executed. It will also find and classify
             the lexemes and the variables used which will be displayed on the tables.
         */
+        //refreshes list and text area contents
+        ConsoleTxtArea.setText("");
+        ERR_LEX.clear(); varNames.clear(); IntvarNames.clear(); StrvarNames.clear();
+        
+        tabInd = EditorTabbedPane.getSelectedIndex();
+        String filename = EditorTabbedPane.getTitleAt(tabInd);
+        
         String[] readLines = readTextArea();
         if(readLines == null){
             JOptionPane.showMessageDialog(null, "Nothing to compile.");
             return;
         }
+        if(filename.equals("Untitled Tab")){
+            JOptionPane.showMessageDialog(null, "Save file first.");
+            return;
+        }
         
         List<String> list = new ArrayList<>();
-//        List<Boolean> errorFound = new ArrayList<>(); //used to store if errors are found in a line
-        ArrayList<String> Tokens = new ArrayList<>();
-        Stack<String> stacks = new Stack<>();
-        List<String> ERR_LEX = new ArrayList<>();
-        
+        List<String> IOL_LOICheck = new ArrayList<>();
         String delim = " ";
         String str = String.join(delim, readLines);
         
         String words[] = str.split("\\s+");
-//        list = ErrorChecker.stringArr(words, ConsoleTxtArea);
+        IOL_LOICheck = ErrorChecker.stringArr(words, ConsoleTxtArea);
         
+        if(!IOL_LOICheck.isEmpty()){
+            //errors found, cannot execute program
+        }
+        list = Arrays.asList(readLines);
         
+        int ctr = 1;
+        List<String> n = new ArrayList<>();
+        while(ctr < list.size()-1){
+            String newStr = list.get(ctr).trim();
+            ERR_LEX = ErrorChecker.getErrors(newStr, ConsoleTxtArea, AllKeywords, AllOPR, varNames, IntvarNames, StrvarNames, ctr);
+            ctr++;
+        }
         Tokenizer(words);
-        TknToFile(Tokens);
-        
-//        int ctr = 1;
-//        while(ctr < list.size()-1){
-//             
-//           String newStr = list.get(ctr).trim();
-//           System.out.println("newStr " + newStr);
-//           ERR_LEX = ErrorChecker.getTokens(newStr, var, AllOPR, ConsoleTxtArea);
-//           ctr++;
-//        }
-        
-//        System.out.println(Tokens);
-        compileFlag = true;
+        TknToFile(ListOfTokens);
+
+        if(!IOL_LOICheck.isEmpty()&& ERR_LEX.isEmpty()){
+            compileFlag = true;
+        }
     }//GEN-LAST:event_CompileMenuItemActionPerformed
     
     
     private void ExecuteMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ExecuteMenuItemActionPerformed
         // TODO add your handling code here:
         //Executes compiled source code in the editor code. Will only execute if no errors are found.
+        
+        ConsoleTxtArea.setText("");
         if(errFlag == true){
             JOptionPane.showMessageDialog(null, "Errors found! Cannot execute file.");
             return;
@@ -386,7 +402,10 @@ class IOL_GUI extends javax.swing.JFrame{
             return;
         }
         
-        ConsoleTxtArea.setText("");
+        tabInd = EditorTabbedPane.getSelectedIndex();
+        String filename = EditorTabbedPane.getTitleAt(tabInd);
+        ConsoleTxtArea.append(filename + " compiled with no errors found. \nProgram " + filename + " will now be executed...\n\n");
+        
         String[] sentenceLines = readTextArea();
         if(sentenceLines == null){
             JOptionPane.showMessageDialog(null, "Nothing to execute.");
@@ -403,7 +422,9 @@ class IOL_GUI extends javax.swing.JFrame{
         ArrayList<String> sval = new ArrayList<>();//list of string assigned values
         ArrayList<String> svar = new ArrayList<>(); //list of string variables
         ArrayList<String> ivar = new ArrayList<>(); //list of integer variables
-        List<String> VarFound = new ArrayList<>(); //list of variables names
+//        List<String> VarFound = new ArrayList<>(); //list of variables names
+        
+        varNames.clear();
         
         Stack<String> ArithOPR = new Stack<>();
         
@@ -441,11 +462,11 @@ class IOL_GUI extends javax.swing.JFrame{
                 ArrayList<String> readWord = PWord.get(a);
                 if(!AllDT.contains(readWord.get(b))){
                     //Enters function that reads words that are: NEWLN, IS, INTO, BEG, PRINT
-                    output = ExecuteFunctions.ProgramOperations(ArithOPR, AllOPR, readWord, b, VarFound, dtsvarval, sval, svarval, val, varval);
+                    output = ExecuteFunctions.ProgramOperations(ArithOPR, AllOPR, readWord, b, varNames, dtsvarval, sval, svarval, val, varval);
                     ConsoleTxtArea.append(output);
                 }
                 //Checks variable datatypes
-                else ExecuteFunctions.CheckDataType(readWord, b, VarFound, dtsvarval, sval, svar, svarval, val, ivar, varval);
+                else ExecuteFunctions.CheckDataType(readWord, b, varNames, dtsvarval, sval, svar, svarval, val, ivar, varval);
                 
                 //---DO NOT REMOVE---
                 if(readWord.size()!=b){
@@ -453,7 +474,6 @@ class IOL_GUI extends javax.swing.JFrame{
                 } else break;   
             }
         }
-        System.out.println(VarFound);
         ConsoleTxtArea.append("\n\nProgram terminated successfully...");
     }//GEN-LAST:event_ExecuteMenuItemActionPerformed
 
@@ -495,9 +515,10 @@ class IOL_GUI extends javax.swing.JFrame{
             for (String wordX : word) {
                 if(wordX.isEmpty()) TokenTxtArea.append("\t");
                 else if(ListOfTokens.contains(wordX)) TokenTxtArea.append(wordX + " ");
-                else if(isVar(wordX)) TokenTxtArea.append("IDENT ");
+                else if(isVar(wordX) && varNames.contains(wordX)) TokenTxtArea.append("IDENT ");
                 else if(isInteger(wordX)) TokenTxtArea.append("INT_LIT ");
                 else TokenTxtArea.append("ERR_LEX ");
+                
             }
             TokenTxtArea.append("\n");
         }
@@ -540,10 +561,6 @@ class IOL_GUI extends javax.swing.JFrame{
     }
     
     //Start of GUI menu actions methods here ------------------------------------------
-    public JTextArea getTextArea(){
-        return CodeEditorTxtArea;
-    }
-    
     public JTabbedPane createNewTab(String tabName){
         JTextArea NewTabTxtArea = new JTextArea();
         JScrollPane NewScrollPane = new JScrollPane(NewTabTxtArea);
@@ -651,18 +668,18 @@ class IOL_GUI extends javax.swing.JFrame{
         //CHECKS IF THERE IS TEXT IN CODEEDITOR TO COMPILE
         JTextArea ExecTextArea = (JTextArea)(((JScrollPane)EditorTabbedPane.getComponent(tabInd)).getViewport()).getComponent(0);
         if(ExecTextArea.getText().trim().isEmpty() == false){
-            sentenceLines = CodeEditorTxtArea.getText().split("\\n");
+            sentenceLines = ExecTextArea.getText().split("\\n");
         }
         return sentenceLines;
     }
     
     public void TknToFile(ArrayList<String> Tokens){
+        //creates .tkn file
         tabInd = EditorTabbedPane.getSelectedIndex();
         String filename = EditorTabbedPane.getTitleAt(tabInd);
         
         if(filename.equals("Untitled Tab")){
             JOptionPane.showMessageDialog(null, "Save file first.");
-            
         }
         else{
             File file = new File(filePath.replace(".iol", ".tkn"));
@@ -682,7 +699,7 @@ class IOL_GUI extends javax.swing.JFrame{
     }
     
     public static void Tokenizer(String[] words){
-        //loops through sentenclines
+        //loops through sentenclines, reads through the code and categorizes it
         ListOfTokens.clear(); 
         
         ArrayList<String> Keywords = new ArrayList<>(); 
@@ -749,7 +766,7 @@ class IOL_GUI extends javax.swing.JFrame{
                 ListOfTokens.add("INT_LIT");
             }
             //IF WORD IS NOT A KEYWORD, IDENT, OR INT_LIT
-            else if (ERR_LEX.contains(words[a]) ){
+            else if (ERR_LEX.contains(words[a])){
                 tokenRow[0] = words[a];
                 tokenRow[1] = "ERR_LEX";
                 TknTable.addRow(tokenRow);
