@@ -1,4 +1,4 @@
-/*
+ /*
 This class is called in the IOL_GUI.java (main class).
 This class is responsible for the Execution functions of the IOL_GUI. It has 
 2 major functions:
@@ -113,29 +113,35 @@ public class ExecuteFunctions {
                 wordIndex++;
                 
                 //IF strVariable is read
-                if(AllOPR.contains(readWord.get(wordIndex))){
+                
+                if(readWord.get(wordIndex).length()-1!=wordIndex){
                     String calc = isOPR(readWord, wordIndex, int_VarVal, AllOPR, ArithOPR);
                     Integer arithValue = evaluatePrefix(calc);
                     output = arithValue.toString();
                 }
                 else{
                     if(var_dataType.get("INT") != null && var_dataType.get("INT").contains(readWord.get(wordIndex))){
+                        System.out.println("wordInt " + wordIndex);
                         output = int_VarVal.put(readWord.get(wordIndex), int_VarVal.get(readWord.get(wordIndex))).toString();
                     }
                     if(var_dataType.get("STR") != null && var_dataType.get("STR").contains(readWord.get(wordIndex))){
                         output = (str_VarVal.put(readWord.get(wordIndex), str_VarVal.get(readWord.get(wordIndex))));
                     }
+                    
+                    
                 }
                 break;
                 
             case "INTO":
                 //INTO var IS expr
                 wordIndex++;  wordIndex++; wordIndex++; 
-                if(AllOPR.contains(readWord.get(wordIndex))){
+                if(readWord.get(wordIndex).length()-1!=wordIndex){
                     String calc = isOPR(readWord, wordIndex, int_VarVal, AllOPR, ArithOPR);
                     Integer arithValue = evaluatePrefix(calc);
                     int_VarVal.put(readWord.get(wordIndex-2), arithValue);
-                } 
+                }
+                
+                
                 //INTO VAR IS VAL
                 else{
                     int_Val.add(strToInt(readWord.get(wordIndex+2)));
@@ -153,51 +159,55 @@ public class ExecuteFunctions {
     public static String isOPR(ArrayList<String> readWord, int wordIndex, HashMap<String,Integer> int_VarVal, List<String> AllOPR, Stack<String> ArithOPR){
     //this function allows a statement to do its arithmetic operations
     //INSERT POSTFIX TO INFIX FOR ARITH
-//        while(wordIndex != readWord.size()-1){
-//            System.out.println("wordInd " + wordIndex);
-//            System.out.println("read " + readWord.size());
-//            //if VAL
-//            if(!ArithOPR.contains(readWord.get(wordIndex)) && isVar(readWord.get(wordIndex))){ 
-//                String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
-//                ArithOPR.push(value);
-//            }
-//            //IF OP or VAL
-//            else ArithOPR.push(readWord.get(wordIndex));
-//            wordIndex++;   
-//            ArithOPR.push(readWord.get(wordIndex));   
-//        }
-        while(AllOPR.contains(readWord.get(wordIndex))){
-            ArithOPR.push(readWord.get(wordIndex));
+        while(wordIndex != readWord.size()-1){
+            System.out.println("wordInd " + wordIndex);
+            System.out.println("read " + readWord.size());
+            //if VAL
+            if(!AllOPR.contains(readWord.get(wordIndex)) && isVar(readWord.get(wordIndex))){ 
+                System.out.println("VAR " + readWord.get(wordIndex));
+                String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
+                ArithOPR.push(value);
+            }
+            //IF OP or VAL
+            else{ ArithOPR.push(readWord.get(wordIndex));}
             wordIndex++;
         }
-
-        //if IDENT
-        if(isVar(readWord.get(wordIndex))){
-            String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
-            ArithOPR.push(value);
-        }
-
-        //if VAL
-        if(isInteger(readWord.get(wordIndex))){
-            ArithOPR.push(readWord.get(wordIndex));
-        }
-        wordIndex++;
-
-        //if IDENT
-        if(isVar(readWord.get(wordIndex))){
-            String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
-            ArithOPR.push(value);
-        }
-
-        //if VAL
-        if(isInteger(readWord.get(wordIndex))){
-            ArithOPR.push(readWord.get(wordIndex));
-        }  
-
-        //results from arith
+            ArithOPR.push(readWord.get(wordIndex));   
         String arithVal = ArithOPR.toString();
         ArithOPR.clear();    //clears stack for next arith oper
         return (arithVal);
+//        while(AllOPR.contains(readWord.get(wordIndex))){
+//            ArithOPR.push(readWord.get(wordIndex));
+//            wordIndex++;
+//        }
+//
+//        //if IDENT
+//        if(isVar(readWord.get(wordIndex))){
+//            String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
+//            ArithOPR.push(value);
+//        }
+//
+//        //if VAL
+//        if(isInteger(readWord.get(wordIndex))){
+//            ArithOPR.push(readWord.get(wordIndex));
+//        }
+//        wordIndex++;
+//
+//        //if IDENT
+//        if(isVar(readWord.get(wordIndex))){
+//            String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
+//            ArithOPR.push(value);
+//        }
+//
+//        //if VAL
+//        if(isInteger(readWord.get(wordIndex))){
+//            ArithOPR.push(readWord.get(wordIndex));
+//        }  
+//
+//        //results from arith
+//        String arithVal = ArithOPR.toString();
+//        ArithOPR.clear();    //clears stack for next arith oper
+//        return (arithVal);
 //    */
     }
         
