@@ -398,7 +398,7 @@ class IOL_GUI extends javax.swing.JFrame{
             return;
         }
         if(compileFlag == false){
-            JOptionPane.showMessageDialog(null, "Cannot execute, compile code first.");
+            JOptionPane.showMessageDialog(null, "Cannot execute, compile code/resolve errors first.");
             return;
         }
         
@@ -480,11 +480,6 @@ class IOL_GUI extends javax.swing.JFrame{
     private void TokenizedMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TokenizedMenuItemActionPerformed
         // TODO add your handling code here:
         //CODE SHOULD COMPILE FIRST BEFORE TOKENIZED CAN BE DONE
-        
-        if(compileFlag == false){
-            JOptionPane.showMessageDialog(null, "Compile file first.");
-            return;
-        }
         
         tabInd = EditorTabbedPane.getSelectedIndex();
         String[] readLines = readTextArea();
