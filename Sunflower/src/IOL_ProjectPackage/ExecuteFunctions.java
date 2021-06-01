@@ -155,37 +155,30 @@ public class ExecuteFunctions {
     
     public static String isOPR(ArrayList<String> readWord, int wordIndex, HashMap<String,Integer> int_VarVal, List<String> AllOPR, Stack<String> ArithOPR){
     //this function allows a statement to do its arithmetic operations
-        while(AllOPR.contains(readWord.get(wordIndex))){
-            ArithOPR.push(readWord.get(wordIndex));
+         while(wordIndex != readWord.size()-1){
+            System.out.println("wordInd " + wordIndex);
+            System.out.println("read " + readWord.size());
+            //if VAL
+            if(!AllOPR.contains(readWord.get(wordIndex)) && isVar(readWord.get(wordIndex))){ 
+                System.out.println("VAR " + readWord.get(wordIndex));
+                String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
+                ArithOPR.push(value);
+            }
+            //IF OP or VAL
+            else{ ArithOPR.push(readWord.get(wordIndex));}
             wordIndex++;
         }
-        //if IDENT
-        if(isVar(readWord.get(wordIndex))){
-            String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
-            ArithOPR.push(value);
-        }
-
         //if VAL
-        if(isInteger(readWord.get(wordIndex))){
-            ArithOPR.push(readWord.get(wordIndex));
-        }
-        wordIndex++;
-
-        //if IDENT
-        if(isVar(readWord.get(wordIndex))){
-            String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
-            ArithOPR.push(value);
-        }
-
-        //if VAL
-        if(isInteger(readWord.get(wordIndex))){
-            ArithOPR.push(readWord.get(wordIndex));
-        }  
-
-        //results from arith
-        String arithVal = ArithOPR.toString();
-        ArithOPR.clear();    //clears stack for next arith oper
-        return (arithVal);
+            if(!AllOPR.contains(readWord.get(wordIndex)) && isVar(readWord.get(wordIndex))){ 
+                System.out.println("VAR " + readWord.get(wordIndex));
+                String value = (int_VarVal.get(readWord.get(wordIndex))).toString();
+                ArithOPR.push(value);
+            }
+            //IF OP or VAL
+            else{ ArithOPR.push(readWord.get(wordIndex));}  
+            String arithVal = ArithOPR.toString();
+            ArithOPR.clear();    //clears stack for next arith oper
+            return (arithVal);
     
     
     /*
